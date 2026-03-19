@@ -571,4 +571,18 @@ window.updateModalQty = updateModalQty;
 window.showAllRestaurants = (e) => { if (e) e.preventDefault(); };
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
 
+function adminLogin() {
+    const user = prompt(currentLang === 'es' ? 'Usuario de administrador:' : 'Admin User:');
+    if (!user) return;
+    const pass = prompt(currentLang === 'es' ? 'Contraseña:' : 'Password:');
+    if (!pass) return;
+
+    if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
+        window.location.href = 'admin.html';
+    } else {
+        alert(currentLang === 'es' ? 'Credenciales incorrectas' : 'Incorrect credentials');
+    }
+}
+window.adminLogin = adminLogin;
+
 updateUI();
