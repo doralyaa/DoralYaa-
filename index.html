@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoraYaa! - Premium Delivery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_v3.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div id="app-container">
+        <!-- Language Switcher -->
+        <div class="lang-container">
+            <button class="lang-toggle" onclick="toggleLangDropdown()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
+                </svg>
+            </button>
+            <div id="lang-dropdown" class="lang-dropdown">
+                <button class="lang-option active" onclick="switchLanguage('es')">Español</button>
+                <button class="lang-option" onclick="switchLanguage('en')">English</button>
+            </div>
+        </div>
+
+        <header>
+            <div class="brand">
+                <img src="logo.png" alt="Logo" class="mini-logo">
+                <span class="brand-name">DoraYaa!</span>
+            </div>
+            <div class="cart-badge-container" onclick="viewCart()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span id="cart-count">0</span>
+            </div>
+        </header>
+
+        <section class="greeting">
+            <h1 id="greet-text">Hola Amaya!</h1>
+            <p id="subgreet-text">Pidamos algo de comida y tengamos un dia delicioso</p>
+        </section>
+
+        <section class="search-container">
+            <div class="search-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="search-input" placeholder="Buscar...">
+            </div>
+        </section>
+
+        <section style="margin-bottom: 24px;">
+            <div class="section-header" style="margin-bottom: 12px;">
+                <h2 id="popular-title">Productos más pedidos</h2>
+            </div>
+            <div class="carousel-container" id="popular-carousel">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="carousel-dots" id="carousel-dots"></div>
+        </section>
+
+        <section class="section-header">
+            <h2 id="cat-title">Categorias</h2>
+            <a href="#" class="view-all" id="view-all-cats">Ver todo</a>
+        </section>
+
+        <div class="categories-scroll" id="categories-container"></div>
+
+        <section class="section-header" id="rests-header">
+            <h2 id="rests-title">Restaurantes</h2>
+            <a href="#" class="view-all" id="view-all-rests" onclick="showAllRestaurants(event)">Ver todo</a>
+        </section>
+
+        <div class="restaurant-grid" id="restaurant-grid"></div>
+
+        <section class="section-header" id="restaurant-products-header" style="display: none; margin-top: 24px;">
+            <h2 id="prod-title">Productos</h2>
+            <a href="#" class="view-all" onclick="backToRestaurants(event)">Volver</a>
+        </section>
+
+        <div class="product-grid" id="product-grid" style="display: none;"></div>
+
+        <!-- Cart Modal -->
+        <div id="cart-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Tu Pedido</h2>
+                    <button class="close-btn" onclick="closeCart()">&times;</button>
+                </div>
+                <div id="cart-items" class="cart-items-list">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="cart-total">$0.00</span>
+                    </div>
+                    <button class="checkout-btn" onclick="openCheckoutForm()">
+                        Pedir Yaa!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Form Modal -->
+        <div id="checkout-form-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Detalles de Envío</h2>
+                    <button class="close-btn" onclick="closeCheckoutForm()">&times;</button>
+                </div>
+                <div class="checkout-form" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="customer-name"
+                            style="font-weight: 600; font-size: 14px; color: var(--navy);">Nombre</label>
+                        <input type="text" id="customer-name" placeholder="Ej: Juan Pérez"
+                            style="padding: 12px; border-radius: 12px; border: 1px solid #E1E8F0; outline: none; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="customer-address"
+                            style="font-weight: 600; font-size: 14px; color: var(--navy);">Dirección</label>
+                        <input type="text" id="customer-address" placeholder="Ej: Calle 123 #45-67"
+                            style="padding: 12px; border-radius: 12px; border: 1px solid #E1E8F0; outline: none; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="customer-phone"
+                            style="font-weight: 600; font-size: 14px; color: var(--navy);">Número de contacto</label>
+                        <input type="tel" id="customer-phone" placeholder="Ej: 300 123 4567"
+                            style="padding: 12px; border-radius: 12px; border: 1px solid #E1E8F0; outline: none; font-family: inherit;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="order-notes" style="font-weight: 600; font-size: 14px; color: var(--navy);">Novedad
+                            / Notas del pedido</label>
+                        <textarea id="order-notes" placeholder="Ej: Hamburguesa sin cebolla, sin lechuga..." rows="3"
+                            style="padding: 12px; border-radius: 12px; border: 1px solid #E1E8F0; outline: none; font-family: inherit; resize: none;"></textarea>
+                    </div>
+                    <button class="checkout-btn" onclick="submitOrder()" style="margin-top: 8px;">
+                        Enviar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Product Options Modal -->
+        <div id="product-options-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="options-modal-title">Opciones de Producto</h2>
+                    <button class="close-btn" onclick="closeOptionsModal()">&times;</button>
+                </div>
+                <div class="options-body" style="display: flex; flex-direction: column; gap: 16px;">
+                    <p id="options-modal-desc" style="color: var(--text-muted); font-size: 14px;"></p>
+                    <div id="options-container" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Radio buttons generated here -->
+                    </div>
+
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #E1E8F0; padding-top: 16px;">
+                        <span style="font-weight: 600; font-size: 14px; color: var(--navy);">Cantidad:</span>
+                        <div class="product-controls" style="margin-bottom: 0; background: #F1F1F1;">
+                            <button class="control-btn" onclick="updateModalQty(-1)">-</button>
+                            <span class="qty" id="options-modal-qty">1</span>
+                            <button class="control-btn" onclick="updateModalQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <button class="checkout-btn" onclick="confirmProductOptions()" style="margin-top: 8px;">
+                        Confirmar y Añadir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app_v3.js"></script>
+    <script>setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 500);</script>
+</body>
+
+</html>
