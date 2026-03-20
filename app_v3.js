@@ -628,13 +628,6 @@ async function submitOrder() {
     }
 }
 
-    renderProducts();
-    updateCartCount();
-    renderCartItems();
-    closeCheckoutForm();
-    closeCart();
-}
-
 window.toggleLangDropdown = toggleLangDropdown;
 window.switchLanguage = switchLanguage;
 window.filterCategory = filterCategory;
