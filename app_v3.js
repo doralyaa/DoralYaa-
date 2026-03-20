@@ -546,42 +546,72 @@ async function submitOrder() {
         return;
     }
 
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    const randomId = letters[Math.floor(Math.random() * letters.length)] + 
-                     letters[Math.floor(Math.random() * letters.length)] + 
-                     numbers[Math.floor(Math.random() * numbers.length)] + 
-                     numbers[Math.floor(Math.random() * numbers.length)];
-    const orderId = 'ORD-' + randomId;
-
-    // Disable button to prevent double submission
     const sendBtn = document.querySelector('#checkout-form-modal .checkout-btn');
-    if (sendBtn) { sendBtn.disabled = true; sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...'; }
+    const originalBtnText = sendBtn ? sendBtn.innerText : '';
 
-    // Save to Supabase (cross-device, real-time)
-    const { error } = await getSupabaseClient().from('orders').insert([{
-        id: orderId,
-        customer_name: nameInput,
-        customer_address: addressInput,
-        customer_phone: phoneInput,
-        notes: notesInput || null,
-        items: cart.map(item => ({
-            id: item.id,
-            restaurantId: item.restaurantId,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            option: item.option || null,
-            image: item.image
-        })),
-        total: totalAmount,
-        status: 'pending'
-    }]);
+    try {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numbers = '0123456789';
+        const randomId = letters[Math.floor(Math.random() * letters.length)] + 
+                         letters[Math.floor(Math.random() * letters.length)] + 
+                         numbers[Math.floor(Math.random() * numbers.length)] + 
+                         numbers[Math.floor(Math.random() * numbers.length)];
+        const orderId = 'ORD-' + randomId;
 
-    if (sendBtn) { sendBtn.disabled = false; sendBtn.innerText = currentLang === 'es' ? 'Enviar Pedido' : 'Send Order'; }
+        // Disable button to prevent double submission
+        if (sendBtn) { 
+            sendBtn.disabled = true; 
+            sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...'; 
+        }
 
-    if (error) {
-        console.error('Supabase error:', error);
+        // Calculate total locally to avoid undefined reference errors
+        const orderTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+        // Save to Supabase (cross-device, real-time)
+        const { error } = await getSupabaseClient().from('orders').insert([{
+            id: orderId,
+            customer_name: nameInput,
+            customer_address: addressInput,
+            customer_phone: phoneInput,
+            notes: notesInput || null,
+            items: cart.map(item => ({
+                id: item.id,
+                restaurantId: item.restaurantId,
+                name: item.name,
+                price: item.price,
+                qty: item.qty,
+                option: item.option || null,
+                image: item.image
+            })),
+            total: orderTotal,
+            status: 'pending'
+        }]);
+
+        if (error) throw error;
+
+        // Success Feedback
+        Swal.fire({
+            icon: 'success',
+            title: currentLang === 'es' ? '¡Pedido enviado!' : 'Order submitted!',
+            text: currentLang === 'es' ? '✅ Tu pedido ha sido enviado con éxito.' : '✅ Your order has been submitted successfully.',
+            confirmButtonColor: '#28a745',
+            timer: 3500,
+            timerProgressBar: true
+        });
+
+        // Reset Cart and Form
+        cart = [];
+        document.getElementById('customer-name').value = '';
+        document.getElementById('customer-address').value = '';
+        document.getElementById('customer-phone').value = '';
+        document.getElementById('order-notes').value = '';
+        
+        closeCheckoutForm();
+        renderCartItems();
+        updateCartCount();
+
+    } catch (error) {
+        console.error('Order submission error:', error);
         Swal.fire({
             icon: 'error',
             title: currentLang === 'es' ? 'Error al enviar' : 'Error sending',
@@ -590,24 +620,13 @@ async function submitOrder() {
                 : 'We couldn\'t process your order. Check your connection and try again.',
             confirmButtonColor: '#d33'
         });
-        return;
+    } finally {
+        if (sendBtn) { 
+            sendBtn.disabled = false; 
+            sendBtn.innerText = originalBtnText; 
+        }
     }
-
-    // Success Feedback
-    Swal.fire({
-        icon: 'success',
-        title: currentLang === 'es' ? '¡Pedido enviado!' : 'Order submitted!',
-        text: currentLang === 'es' ? '✅ Tu pedido ha sido enviado con éxito.' : '✅ Your order has been submitted successfully.',
-        confirmButtonColor: '#28a745',
-        timer: 3500,
-        timerProgressBar: true
-    });
-
-    cart = [];
-    document.getElementById('customer-name').value = '';
-    document.getElementById('customer-address').value = '';
-    document.getElementById('customer-phone').value = '';
-    document.getElementById('order-notes').value = '';
+}
 
     renderProducts();
     updateCartCount();
