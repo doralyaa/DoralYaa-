@@ -1,6 +1,6 @@
 // ─── Supabase Setup (lazy init to avoid SDK timing issues) ───────────────────
 const SUPABASE_URL = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcmhtZndzaXBqenF2Znhmb2VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjMwNTgsImV4cCI6MjA4OTUzOTA1OH0.daVZQxMym-9B7n_4b-wXVAGQm8EC41KLR-NMSAvmJAM';
+const SUPABASE_ANON_KEY = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
 let _supabaseClient = null;
 function getSupabaseClient() {
     if (!_supabaseClient) {
