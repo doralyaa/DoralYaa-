@@ -9,6 +9,7 @@ function getSupabaseClient() {
     return _supabaseClient;
 }
 // ─────────────────────────────────────────────────────────────────────────────
+console.log('DoraYaa! app_v3.js v1.1 - Supabase ready');
 
 const translations = {
     es: {

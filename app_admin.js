@@ -9,6 +9,7 @@ function getSupabaseClient() {
     return _supabaseClient;
 }
 // ─────────────────────────────────────────────────────────────────────────────
+console.log('DoraYaa! app_admin.js v1.1 - Supabase ready');
 
 let orders = [];
 
