@@ -589,6 +589,18 @@ async function submitOrder() {
 
         if (error) throw error;
 
+        // Reset Cart and Form
+        cart = [];
+        document.getElementById('customer-name').value = '';
+        document.getElementById('customer-address').value = '';
+        document.getElementById('customer-phone').value = '';
+        document.getElementById('order-notes').value = '';
+        
+        closeCheckoutForm();
+        closeCart();
+        renderCartItems();
+        updateCartCount();
+
         // Success Feedback
         Swal.fire({
             icon: 'success',
@@ -598,17 +610,6 @@ async function submitOrder() {
             timer: 3500,
             timerProgressBar: true
         });
-
-        // Reset Cart and Form
-        cart = [];
-        document.getElementById('customer-name').value = '';
-        document.getElementById('customer-address').value = '';
-        document.getElementById('customer-phone').value = '';
-        document.getElementById('order-notes').value = '';
-        
-        closeCheckoutForm();
-        renderCartItems();
-        updateCartCount();
 
     } catch (error) {
         console.error('Order submission error:', error);
