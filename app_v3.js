@@ -380,15 +380,14 @@ function updateCarousel() {
 
 function addToCartPopular(productId) {
     const product = products.find(p => p.id === productId);
-    const existing = cart.find(item => item.id === productId);
-    if (existing) {
-        existing.qty += 1;
+    if (!product) return;
+    
+    // If it has options or description, show modal
+    if (product.options || product.description) {
+        openOptionsModal(productId, 1);
     } else {
-        cart.push({ ...product, qty: 1 });
+        addItemToCart(product, 1, null);
     }
-    updateCartCount();
-    alert(currentLang === 'es' ? '¡Añadido al carrito!' : 'Added to cart!');
-    if (currentRestaurantId) renderProducts();
 }
 
 function renderProducts() {
