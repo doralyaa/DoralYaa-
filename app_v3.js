@@ -1,3 +1,9 @@
+// ─── Supabase Setup ───────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcmhtZndzaXBqenF2Znhmb2VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjMwNTgsImV4cCI6MjA4OTUzOTA1OH0.daVZQxMym-9B7n_4b-wXVAGQm8EC41KLR-NMSAvmJAM';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ─────────────────────────────────────────────────────────────────────────────
+
 const translations = {
     es: {
         greetMorning: "¡Buenos días!",
@@ -496,7 +502,7 @@ function closeCheckoutForm() {
     document.getElementById('checkout-form-modal').classList.remove('active');
 }
 
-function submitOrder() {
+async function submitOrder() {
     if (cart.length === 0) return;
 
     const nameInput = document.getElementById('customer-name').value.trim();
@@ -510,32 +516,45 @@ function submitOrder() {
     }
 
     const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    const orderId = 'ORD-' + Date.now();
 
-    // Save to localStorage for Admin Profile
-    const newOrder = {
-        id: 'ORD-' + Math.floor(Math.random() * 10000),
-        timestamp: new Date().toISOString(),
-        customerName: nameInput,
-        customerAddress: addressInput,
-        customerPhone: phoneInput,
-        notes: notesInput,
-        items: [...cart],
+    // Disable button to prevent double submission
+    const sendBtn = document.querySelector('#checkout-form-modal .checkout-btn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...'; }
+
+    // Save to Supabase (cross-device, real-time)
+    const { error } = await supabaseClient.from('orders').insert([{
+        id: orderId,
+        customer_name: nameInput,
+        customer_address: addressInput,
+        customer_phone: phoneInput,
+        notes: notesInput || null,
+        items: cart.map(item => ({
+            id: item.id,
+            restaurantId: item.restaurantId,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+            option: item.option || null,
+            image: item.image
+        })),
         total: totalAmount,
         status: 'pending'
-    };
+    }]);
 
-    const orders = JSON.parse(localStorage.getItem('doraya_orders') || '[]');
-    orders.unshift(newOrder); // Add to beginning
-    localStorage.setItem('doraya_orders', JSON.stringify(orders));
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.innerText = currentLang === 'es' ? 'Enviar Pedido' : 'Send Order'; }
 
-    // Feedback
-    alert(currentLang === 'es' ? '¡Pedido enviado con éxito!' : 'Order submitted successfully!');
+    if (error) {
+        console.error('Supabase error:', error);
+        alert(currentLang === 'es'
+            ? '❌ Error al enviar el pedido. Verifica tu conexión e intenta de nuevo.'
+            : '❌ Error sending order. Check your connection and try again.');
+        return;
+    }
 
-    // Check if user still wants to connect via WhatsApp optionally? The prompt says:
-    // "Al final un boton que diga Enviar. Cuando el cliente presione alli, en el perfil de administrador debe llegar la notificacion"
-    // So we just save it and that is it.
+    // Feedback & clear
+    alert(currentLang === 'es' ? '✅ ¡Pedido enviado con éxito!' : '✅ Order submitted successfully!');
 
-    // Clear cart and forms
     cart = [];
     document.getElementById('customer-name').value = '';
     document.getElementById('customer-address').value = '';
