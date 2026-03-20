@@ -180,6 +180,13 @@ function generateWhatsAppLinks(order) {
     return `<div style="display: flex; flex-wrap: wrap; gap: 6px;">${linksHtml}</div>`;
 }
 
+const restaurants = [
+    { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png" },
+    { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png" },
+    { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg" },
+    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" }
+];
+
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-body');
     const noOrders = document.getElementById('no-orders');
@@ -196,6 +203,23 @@ function renderOrdersTable() {
         const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const items = order.items || [];
+        
+        // Merchant(s) lookup
+        const orderRestaurants = [];
+        items.forEach(item => {
+            const rest = restaurants.find(r => r.id === item.restaurantId);
+            if (rest && !orderRestaurants.some(r => r.id === rest.id)) {
+                orderRestaurants.push(rest);
+            }
+        });
+
+        const merchantsHtml = orderRestaurants.map(r => `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <img src="${r.image}" alt="${r.name}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                <span style="font-size: 13px; font-weight: 700; color: var(--navy);">${r.name}</span>
+            </div>
+        `).join('') || '<span style="color: #999; font-size: 12px;">DoraYaa!</span>';
+
         let itemsStr = items.map(i => {
             const optStr = i.option ? ` <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">(${i.option})</span>` : '';
             const name = i.name?.es || i.name?.en || i.name || 'Producto';
@@ -226,6 +250,7 @@ function renderOrdersTable() {
             <tr>
                 <td style="color: var(--primary); font-weight: 700;">${order.id}</td>
                 <td style="color: var(--text-muted);">${time}</td>
+                <td>${merchantsHtml}</td>
                 <td>${customerInfo}</td>
                 <td>
                     <div style="margin-bottom: 4px;">${itemsStr}</div>
@@ -250,7 +275,68 @@ function renderOrdersTable() {
     if (window.lucide) lucide.createIcons();
 }
 
+// ─── Dashboard Navigation ─────────────────────────────────────────────────────
+function showSection(id) {
+    const section = document.getElementById(id + '-section');
+    if (!section) return;
+
+    // Update sections
+    document.querySelectorAll('.admin-section').forEach(sec => sec.classList.add('hidden'));
+    section.classList.remove('hidden');
+
+    // Update nav links
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    const activeNav = document.getElementById('nav-' + id);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Update title
+    const titles = {
+        'dashboard': 'Panel de Control',
+        'orders': 'Gestión de Pedidos'
+    };
+    const titleEl = document.getElementById('section-title');
+    if (titleEl) titleEl.innerText = titles[id] || 'Admin';
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    if (sidebar) sidebar.classList.toggle('collapsed');
+}
+
+async function logout() {
+    const result = await Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: "Tendrás que ingresar tus credenciales de nuevo para acceder.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1F3A5F',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, salir',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        sessionStorage.removeItem('adminLoggedIn');
+        window.location.href = 'index.html';
+    }
+}
+
+// Global expose
+window.showSection = showSection;
+window.toggleSidebar = toggleSidebar;
+window.logout = logout;
+window.loadOrders = loadOrders;
+
 async function updateOrderStatus(orderId, newStatus) {
+    // Optimistic update
+    const idx = orders.findIndex(o => o.id === orderId);
+    if (idx > -1) {
+        orders[idx].status = newStatus;
+        renderDashboard();
+    }
+
     const { error } = await getSupabaseClient()
         .from('orders')
         .update({ status: newStatus })
@@ -258,13 +344,111 @@ async function updateOrderStatus(orderId, newStatus) {
 
     if (error) {
         console.error('Error updating status:', error);
-        alert('Error al actualizar el estado. Intenta de nuevo.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo actualizar el estado del pedido.',
+            confirmButtonColor: '#d33'
+        });
+        // Revert on error
+        await loadOrders();
+    } else {
+        // Success Toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Estado actualizado',
+            background: '#28a745',
+            color: '#fff',
+            iconColor: '#fff'
+        });
     }
-    // Realtime will automatically update the UI
+}
+
+// ─── Authentication Gate ──────────────────────────────────────────────────────
+async function checkAdminAuth() {
+    const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+    if (isLoggedIn === 'true') {
+        await loadOrders();
+        subscribeToOrders();
+        return;
+    }
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Acceso Administrativo',
+        html:
+            '<div style="text-align: left; margin-bottom: 8px;">' +
+            '<label style="font-size: 14px; font-weight: 600;">Email</label>' +
+            '<input id="swal-user" class="swal2-input" placeholder="email@ext.com" style="margin-top: 4px;">' +
+            '</div>' +
+            '<div style="text-align: left;">' +
+            '<label style="font-size: 14px; font-weight: 600;">Contraseña</label>' +
+            '<input id="swal-pass" type="password" class="swal2-input" placeholder="••••••••" style="margin-top: 4px;">' +
+            '</div>',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonText: 'Entrar',
+        confirmButtonColor: '#1F3A5F',
+        showCancelButton: true,
+        cancelButtonText: 'Volver al Inicio',
+        preConfirm: () => {
+            return [
+                document.getElementById('swal-user').value,
+                document.getElementById('swal-pass').value
+            ]
+        }
+    });
+
+    if (formValues) {
+        const [user, pass] = formValues;
+        if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            await loadOrders();
+            subscribeToOrders();
+        } else {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Credenciales incorrectas.',
+                confirmButtonColor: '#d33'
+            });
+            window.location.href = 'index.html';
+        }
+    } else {
+        // User cancelled
+        window.location.href = 'index.html';
+    }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadOrders();
-    subscribeToOrders();
-});
+async function init() {
+    try {
+        if (typeof Swal === 'undefined') {
+            console.warn('SweetAlert2 not loaded immediately, waiting for it...');
+            // Fallback to basic loading if Swal is missing
+            await loadOrders();
+            subscribeToOrders();
+            return;
+        }
+        await checkAdminAuth();
+    } catch (err) {
+        console.error('Initialization error:', err);
+        // Ensure content is loaded even on error
+        await loadOrders().catch(e => console.error(e));
+        subscribeToOrders();
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

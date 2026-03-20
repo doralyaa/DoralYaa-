@@ -10,105 +10,128 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style_admin.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-    <aside class="sidebar-admin">
+    <aside class="sidebar-admin" id="admin-sidebar">
         <div class="brand">
             <img src="logo.png" alt="DoraYaa Logo" class="logo">
             <h2>DoraYaa! Admin</h2>
         </div>
         <nav class="nav-menu">
-            <a href="#" class="nav-link active"><i data-lucide="layout-dashboard"></i> Panel</a>
-            <a href="#" class="nav-link"><i data-lucide="shopping-bag"></i> Pedidos</a>
-            <a href="#" class="nav-link"><i data-lucide="users"></i> Clientes</a>
-            <a href="#" class="nav-link"><i data-lucide="settings"></i> Ajustes</a>
+            <button class="nav-link active" id="nav-dashboard" onclick="showSection('dashboard')">
+                <i data-lucide="layout-dashboard"></i> <span>Panel</span>
+            </button>
+            <button class="nav-link" id="nav-orders" onclick="showSection('orders')">
+                <i data-lucide="shopping-bag"></i> <span>Pedidos</span>
+            </button>
+            <button class="nav-link"><i data-lucide="users"></i> <span>Clientes</span></button>
+            <button class="nav-link"><i data-lucide="settings"></i> <span>Ajustes</span></button>
+            
+            <div class="logout-container">
+                <button class="logout-btn" onclick="logout()">
+                    <i data-lucide="log-out"></i> <span>Cerrar Sesión</span>
+                </button>
+            </div>
         </nav>
     </aside>
 
     <main class="main-content">
         <header class="top-header">
-            <h1>Panel de Control</h1>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 id="section-title">Panel de Control</h1>
+            </div>
             <div class="user-profile">
                 <span>Administrador</span>
                 <div class="avatar">A</div>
             </div>
         </header>
 
-        <section class="dashboard-stats">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--accent-orange); color: var(--primary);">
-                    <i data-lucide="shopping-cart"></i>
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="admin-section">
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--accent-orange); color: var(--primary);">
+                        <i data-lucide="shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Pedidos Hoy</h3>
+                        <p id="stat-orders-today">0</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>Pedidos Hoy</h3>
-                    <p id="stat-orders-today">0</p>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--accent-green); color: #2E7D32;">
+                        <i data-lucide="dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Ingresos Hoy</h3>
+                        <p id="stat-revenue-today">$0</p>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--accent-green); color: #2E7D32;">
-                    <i data-lucide="dollar-sign"></i>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #E3F2FD; color: #1565C0;">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Pedidos Mes</h3>
+                        <p id="stat-orders-month">0</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>Ingresos Hoy</h3>
-                    <p id="stat-revenue-today">$0</p>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
+                        <i data-lucide="trending-up"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Ingresos Mes</h3>
+                        <p id="stat-revenue-month">$0</p>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #E3F2FD; color: #1565C0;">
-                    <i data-lucide="calendar"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Pedidos Mes</h3>
-                    <p id="stat-orders-month">0</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
-                    <i data-lucide="trending-up"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Ingresos Mes</h3>
-                    <p id="stat-revenue-month">$0</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--accent-blue); color: #1565C0;">
-                    <i data-lucide="clock"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Pendientes</h3>
-                    <p id="stat-pending">0</p>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--accent-blue); color: #1565C0;">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Pendientes</h3>
+                        <p id="stat-pending">0</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="recent-orders">
-            <div class="section-header">
-                <h2>Pedidos en Tiempo Real</h2>
-                <button class="refresh-btn" onclick="loadOrders()"><i data-lucide="refresh-cw"></i> Actualizar</button>
-            </div>
+        <!-- Orders Section -->
+        <section id="orders-section" class="admin-section hidden">
+            <div class="recent-orders">
+                <div class="section-header">
+                    <h2>Pedidos en Tiempo Real</h2>
+                    <button class="refresh-btn" onclick="loadOrders()"><i data-lucide="refresh-cw"></i> Actualizar</button>
+                </div>
 
-            <div class="orders-table-container">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th>ID Pedido</th>
-                            <th>Hora</th>
-                            <th>Cliente</th>
-                            <th>Artículos</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-body">
-                        <!-- Dynamically populated -->
-                    </tbody>
-                </table>
-                <div id="no-orders" class="no-data" style="display: none;">
-                    <i data-lucide="inbox" size="48"></i>
-                    <p>No hay pedidos recientes</p>
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID Pedido</th>
+                                <th>Hora</th>
+                                <th>Comercio</th>
+                                <th>Cliente</th>
+                                <th>Artículos</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-body">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                    <div id="no-orders" class="no-data" style="display: none;">
+                        <i data-lucide="inbox" size="48"></i>
+                        <p>No hay pedidos recientes</p>
+                    </div>
                 </div>
             </div>
         </section>

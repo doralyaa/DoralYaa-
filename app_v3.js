@@ -347,7 +347,26 @@ function addItemToCart(product, qty, option) {
     }
 
     updateCartCount();
-    alert(currentLang === 'es' ? '¡Añadido al carrito!' : 'Added to cart!');
+    // SweetAlert2 Toast for adding to cart
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    Toast.fire({
+        icon: 'success',
+        title: currentLang === 'es' ? '¡Añadido!' : 'Added!',
+        background: '#1F3A5F',
+        color: '#fff',
+        iconColor: '#fff'
+    });
     if (currentRestaurantId) renderProducts();
 }
 
@@ -517,12 +536,23 @@ async function submitOrder() {
     const notesInput = document.getElementById('order-notes').value.trim();
 
     if (!nameInput || !addressInput || !phoneInput) {
-        alert(currentLang === 'es' ? 'Por favor ingrese su nombre, dirección y número de contacto.' : 'Please enter your name, address, and contact number.');
+        Swal.fire({
+            icon: 'warning',
+            title: currentLang === 'es' ? 'Datos incompletos' : 'Incomplete data',
+            text: currentLang === 'es' ? 'Por favor ingrese su nombre, dirección y número de contacto.' : 'Please enter your name, address, and contact number.',
+            confirmButtonColor: '#FF6B00',
+            confirmButtonText: 'OK'
+        });
         return;
     }
 
-    const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const orderId = 'ORD-' + Date.now();
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const randomId = letters[Math.floor(Math.random() * letters.length)] + 
+                     letters[Math.floor(Math.random() * letters.length)] + 
+                     numbers[Math.floor(Math.random() * numbers.length)] + 
+                     numbers[Math.floor(Math.random() * numbers.length)];
+    const orderId = 'ORD-' + randomId;
 
     // Disable button to prevent double submission
     const sendBtn = document.querySelector('#checkout-form-modal .checkout-btn');
@@ -552,14 +582,26 @@ async function submitOrder() {
 
     if (error) {
         console.error('Supabase error:', error);
-        alert(currentLang === 'es'
-            ? '❌ Error al enviar el pedido. Verifica tu conexión e intenta de nuevo.'
-            : '❌ Error sending order. Check your connection and try again.');
+        Swal.fire({
+            icon: 'error',
+            title: currentLang === 'es' ? 'Error al enviar' : 'Error sending',
+            text: currentLang === 'es'
+                ? 'No pudimos procesar tu pedido. Verifica tu conexión e intenta de nuevo.'
+                : 'We couldn\'t process your order. Check your connection and try again.',
+            confirmButtonColor: '#d33'
+        });
         return;
     }
 
-    // Feedback & clear
-    alert(currentLang === 'es' ? '✅ ¡Pedido enviado con éxito!' : '✅ Order submitted successfully!');
+    // Success Feedback
+    Swal.fire({
+        icon: 'success',
+        title: currentLang === 'es' ? '¡Pedido enviado!' : 'Order submitted!',
+        text: currentLang === 'es' ? '✅ Tu pedido ha sido enviado con éxito.' : '✅ Your order has been submitted successfully.',
+        confirmButtonColor: '#28a745',
+        timer: 3500,
+        timerProgressBar: true
+    });
 
     cart = [];
     document.getElementById('customer-name').value = '';
@@ -596,16 +638,44 @@ window.updateModalQty = updateModalQty;
 window.showAllRestaurants = (e) => { if (e) e.preventDefault(); };
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
 
-function adminLogin() {
-    const user = prompt(currentLang === 'es' ? 'Usuario:' : 'User:');
-    if (!user) return;
-    const pass = prompt(currentLang === 'es' ? 'Contraseña:' : 'Password:');
-    if (!pass) return;
+async function adminLogin() {
+    const { value: formValues } = await Swal.fire({
+        title: currentLang === 'es' ? 'Acceso Admin' : 'Admin Access',
+        html:
+            '<div style="text-align: left; margin-bottom: 8px;">' +
+            '<label style="font-size: 14px; font-weight: 600;">Email</label>' +
+            '<input id="swal-user" class="swal2-input" placeholder="email@ext.com" style="margin-top: 4px;">' +
+            '</div>' +
+            '<div style="text-align: left;">' +
+            '<label style="font-size: 14px; font-weight: 600;">Contraseña</label>' +
+            '<input id="swal-pass" type="password" class="swal2-input" placeholder="••••••••" style="margin-top: 4px;">' +
+            '</div>',
+        focusConfirm: false,
+        confirmButtonText: currentLang === 'es' ? 'Entrar' : 'Login',
+        confirmButtonColor: '#1F3A5F',
+        showCancelButton: true,
+        cancelButtonText: currentLang === 'es' ? 'Cancelar' : 'Cancel',
+        preConfirm: () => {
+            return [
+                document.getElementById('swal-user').value,
+                document.getElementById('swal-pass').value
+            ]
+        }
+    });
 
-    if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
-        window.location.href = 'admin.html';
-    } else {
-        alert(currentLang === 'es' ? 'Credenciales incorrectas.' : 'Incorrect credentials.');
+    if (formValues) {
+        const [user, pass] = formValues;
+        if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            window.location.href = 'admin.html';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: currentLang === 'es' ? 'Error' : 'Error',
+                text: currentLang === 'es' ? 'Credenciales incorrectas.' : 'Incorrect credentials.',
+                confirmButtonColor: '#d33'
+            });
+        }
     }
 }
 window.adminLogin = adminLogin;
