@@ -602,14 +602,16 @@ async function submitOrder() {
         updateCartCount();
 
         // Success Feedback
-        Swal.fire({
-            icon: 'success',
-            title: currentLang === 'es' ? '¡Pedido enviado!' : 'Order submitted!',
-            text: currentLang === 'es' ? '✅ Tu pedido ha sido enviado con éxito.' : '✅ Your order has been submitted successfully.',
-            confirmButtonColor: '#28a745',
-            timer: 3500,
-            timerProgressBar: true
-        });
+        setTimeout(() => {
+            Swal.fire({
+                icon: 'success',
+                title: currentLang === 'es' ? '¡Pedido enviado!' : 'Order submitted!',
+                text: currentLang === 'es' ? '✅ Tu pedido ha sido enviado con éxito.' : '✅ Your order has been submitted successfully.',
+                confirmButtonColor: '#28a745',
+                timer: 3500,
+                timerProgressBar: true
+            });
+        }, 100);
 
     } catch (error) {
         console.error('Order submission error:', error);
