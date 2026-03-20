@@ -1,7 +1,3 @@
-const supabaseUrl = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
-const supabaseKey = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
 let orders = [];
 
 // Phone mapping for restaurants
@@ -16,42 +12,15 @@ function formatPrice(price) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price);
 }
 
-async function loadOrders() {
-    try {
-        const { data, error } = await supabase
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false });
-            
-        if (error) throw error;
-        
-        if (data) {
-            orders = data.map(o => ({
-                id: o.id,
-                timestamp: o.created_at,
-                customerName: o.customer_name,
-                customerAddress: o.customer_address,
-                customerPhone: o.customer_phone,
-                notes: o.notes,
-                items: o.items,
-                total: o.total,
-                status: o.status
-            }));
-        }
-    } catch (err) {
-        console.error("Error loading orders:", err);
+function loadOrders() {
+    const data = localStorage.getItem('doraya_orders');
+    if (data) {
+        orders = JSON.parse(data);
+    } else {
+        orders = [];
     }
     renderDashboard();
 }
-
-// Enable realtime
-supabase
-    .channel('custom-all-channel')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        console.log('Cambio detectado en base de datos:', payload);
-        loadOrders();
-    })
-    .subscribe();
 
 function renderDashboard() {
     updateStats();
@@ -202,27 +171,21 @@ function renderOrdersTable() {
     if(window.lucide) lucide.createIcons();
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-    // optimistic update
+function updateOrderStatus(orderId, newStatus) {
     const orderIndex = orders.findIndex(o => o.id === orderId);
     if (orderIndex > -1) {
         orders[orderIndex].status = newStatus;
+        localStorage.setItem('doraya_orders', JSON.stringify(orders));
         renderDashboard();
     }
-    
-    // update db
-    try {
-        const { error } = await supabase
-            .from('orders')
-            .update({ status: newStatus })
-            .eq('id', orderId);
-            
-        if (error) throw error;
-    } catch (err) {
-        console.error("Error updating order:", err);
+}
+
+// Listen to changes in localStorage so it updates in real time cross-tab
+window.addEventListener('storage', (e) => {
+    if (e.key === 'doraya_orders') {
         loadOrders();
     }
-}
+});
 
 // Initial load
 document.addEventListener('DOMContentLoaded', loadOrders);

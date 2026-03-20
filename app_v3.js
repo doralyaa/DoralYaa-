@@ -84,10 +84,6 @@ const products = [
     { id: 12, restaurantId: 4, category: 'food', name: { es: "Sándwich", en: "Sandwich" }, description: { es: "Sándwich clásico para acompañar tu café.", en: "Classic sandwich to go with your coffee." }, price: 16000, image: "sandwich.jpg", popular: false }
 ];
 
-const supabaseUrl = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
-const supabaseKey = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
 let currentLang = 'es';
 let cart = [];
 let currentCategory = 'all';
@@ -500,7 +496,7 @@ function closeCheckoutForm() {
     document.getElementById('checkout-form-modal').classList.remove('active');
 }
 
-async function submitOrder() {
+function submitOrder() {
     if (cart.length === 0) return;
 
     const nameInput = document.getElementById('customer-name').value.trim();
@@ -514,65 +510,43 @@ async function submitOrder() {
     }
 
     const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const orderId = 'ORD-' + Math.floor(Math.random() * 10000);
 
+    // Save to localStorage for Admin Profile
     const newOrder = {
-        id: orderId,
-        customer_name: nameInput,
-        customer_address: addressInput,
-        customer_phone: phoneInput,
+        id: 'ORD-' + Math.floor(Math.random() * 10000),
+        timestamp: new Date().toISOString(),
+        customerName: nameInput,
+        customerAddress: addressInput,
+        customerPhone: phoneInput,
         notes: notesInput,
         items: [...cart],
         total: totalAmount,
         status: 'pending'
     };
 
-    try {
-        const btn = document.querySelector('#checkout-form-modal .checkout-btn');
-        const origText = btn.innerText;
-        btn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...';
-        btn.disabled = true;
+    const orders = JSON.parse(localStorage.getItem('doraya_orders') || '[]');
+    orders.unshift(newOrder); // Add to beginning
+    localStorage.setItem('doraya_orders', JSON.stringify(orders));
 
-        const { error } = await supabase.from('orders').insert([newOrder]);
-        
-        btn.innerText = origText;
-        btn.disabled = false;
+    // Feedback
+    alert(currentLang === 'es' ? '¡Pedido enviado con éxito!' : 'Order submitted successfully!');
 
-        if (error) throw error;
+    // Check if user still wants to connect via WhatsApp optionally? The prompt says:
+    // "Al final un boton que diga Enviar. Cuando el cliente presione alli, en el perfil de administrador debe llegar la notificacion"
+    // So we just save it and that is it.
 
-        // Save to localStorage for backup/history
-        const localOrder = {
-            id: orderId,
-            timestamp: new Date().toISOString(),
-            customerName: nameInput,
-            customerAddress: addressInput,
-            customerPhone: phoneInput,
-            notes: notesInput,
-            items: [...cart],
-            total: totalAmount,
-            status: 'pending'
-        };
-        const orders = JSON.parse(localStorage.getItem('doraya_orders') || '[]');
-        orders.unshift(localOrder);
-        localStorage.setItem('doraya_orders', JSON.stringify(orders));
+    // Clear cart and forms
+    cart = [];
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-address').value = '';
+    document.getElementById('customer-phone').value = '';
+    document.getElementById('order-notes').value = '';
 
-        alert(currentLang === 'es' ? '¡Pedido enviado con éxito!' : 'Order submitted successfully!');
-
-        cart = [];
-        document.getElementById('customer-name').value = '';
-        document.getElementById('customer-address').value = '';
-        document.getElementById('customer-phone').value = '';
-        document.getElementById('order-notes').value = '';
-
-        renderProducts();
-        updateCartCount();
-        renderCartItems();
-        closeCheckoutForm();
-        closeCart();
-    } catch (err) {
-        console.error("Error submitting order:", err);
-        alert(currentLang === 'es' ? 'Hubo un error al enviar el pedido. Por favor intenta de nuevo.' : 'Error submitting order. Please try again.');
-    }
+    renderProducts();
+    updateCartCount();
+    renderCartItems();
+    closeCheckoutForm();
+    closeCart();
 }
 
 window.toggleLangDropdown = toggleLangDropdown;
@@ -598,7 +572,7 @@ window.showAllRestaurants = (e) => { if (e) e.preventDefault(); };
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
 
 function adminLogin() {
-    const user = prompt(currentLang === 'es' ? 'Usuario de administrador:' : 'Admin User:');
+    const user = prompt(currentLang === 'es' ? 'Usuario:' : 'User:');
     if (!user) return;
     const pass = prompt(currentLang === 'es' ? 'Contraseña:' : 'Password:');
     if (!pass) return;
@@ -606,7 +580,7 @@ function adminLogin() {
     if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
         window.location.href = 'admin.html';
     } else {
-        alert(currentLang === 'es' ? 'Credenciales incorrectas' : 'Incorrect credentials');
+        alert(currentLang === 'es' ? 'Credenciales incorrectas.' : 'Incorrect credentials.');
     }
 }
 window.adminLogin = adminLogin;
