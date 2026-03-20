@@ -1,7 +1,13 @@
-// ─── Supabase Setup ───────────────────────────────────────────────────────────
+// ─── Supabase Setup (lazy init to avoid SDK timing issues) ───────────────────
 const SUPABASE_URL = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcmhtZndzaXBqenF2Znhmb2VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjMwNTgsImV4cCI6MjA4OTUzOTA1OH0.daVZQxMym-9B7n_4b-wXVAGQm8EC41KLR-NMSAvmJAM';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let _supabaseClient = null;
+function getSupabaseClient() {
+    if (!_supabaseClient) {
+        _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return _supabaseClient;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 const translations = {
@@ -523,7 +529,7 @@ async function submitOrder() {
     if (sendBtn) { sendBtn.disabled = true; sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...'; }
 
     // Save to Supabase (cross-device, real-time)
-    const { error } = await supabaseClient.from('orders').insert([{
+    const { error } = await getSupabaseClient().from('orders').insert([{
         id: orderId,
         customer_name: nameInput,
         customer_address: addressInput,

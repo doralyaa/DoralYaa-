@@ -1,7 +1,13 @@
-// ─── Supabase Setup ───────────────────────────────────────────────────────────
+// ─── Supabase Setup (lazy init to avoid SDK timing issues) ───────────────────
 const SUPABASE_URL = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcmhtZndzaXBqenF2Znhmb2VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjMwNTgsImV4cCI6MjA4OTUzOTA1OH0.daVZQxMym-9B7n_4b-wXVAGQm8EC41KLR-NMSAvmJAM';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let _supabaseClient = null;
+function getSupabaseClient() {
+    if (!_supabaseClient) {
+        _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return _supabaseClient;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 let orders = [];
@@ -20,7 +26,7 @@ function formatPrice(price) {
 
 // ─── Load orders from Supabase ────────────────────────────────────────────────
 async function loadOrders() {
-    const { data, error } = await supabaseClient
+    const { data, error } = await getSupabaseClient()
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
@@ -36,7 +42,7 @@ async function loadOrders() {
 
 // ─── Realtime subscription ────────────────────────────────────────────────────
 function subscribeToOrders() {
-    supabaseClient
+    getSupabaseClient()
         .channel('orders-channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
             if (payload.eventType === 'INSERT') {
@@ -244,7 +250,7 @@ function renderOrdersTable() {
 }
 
 async function updateOrderStatus(orderId, newStatus) {
-    const { error } = await supabaseClient
+    const { error } = await getSupabaseClient()
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);
