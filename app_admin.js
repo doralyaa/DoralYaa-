@@ -209,19 +209,14 @@ function renderOrdersTable() {
 
     let filtered = [...orders];
 
-    // 1. Filtro de Fecha (Rango)
+    // 1. Filtro de Fecha (Rango YYYY-MM-DD)
     if (filterStart || filterEnd) {
         filtered = filtered.filter(o => {
-            const oDate = new Date(o.created_at).setHours(0,0,0,0);
+            // Extraer solo la parte YYYY-MM-DD de la fecha de creación de Supabase
+            const oDateStr = new Date(o.created_at).toISOString().split('T')[0];
             
-            if (filterStart) {
-                const startDate = new Date(filterStart).setHours(0,0,0,0);
-                if (oDate < startDate) return false;
-            }
-            if (filterEnd) {
-                const endDate = new Date(filterEnd).setHours(0,0,0,0);
-                if (oDate > endDate) return false;
-            }
+            if (filterStart && oDateStr < filterStart) return false;
+            if (filterEnd && oDateStr > filterEnd) return false;
             return true;
         });
     }
@@ -230,7 +225,6 @@ function renderOrdersTable() {
     if (filterMerchant !== 'all') {
         filtered = filtered.filter(o => {
             const items = o.items || [];
-            // Si el pedido tiene al menos un item del comercio seleccionado
             return items.some(i => i.restaurantId.toString() === filterMerchant);
         });
     }
