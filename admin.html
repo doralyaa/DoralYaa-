@@ -53,43 +53,81 @@
 
         <!-- Dashboard Section -->
         <section id="dashboard-section" class="admin-section">
-            <div class="dashboard-stats">
+            <div class="section-header">
+                <h2>Panel de Control</h2>
+                <div style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Resumen financiero de la plataforma</div>
+            </div>
+
+            <!-- Filtros del Dashboard -->
+            <div class="admin-filters" style="margin-top: 20px;">
+                <div class="filter-group">
+                    <label>Desde:</label>
+                    <input type="date" id="dash-filter-date-start" onchange="renderDashboard()">
+                </div>
+                <div class="filter-group">
+                    <label>Hasta:</label>
+                    <input type="date" id="dash-filter-date-end" onchange="renderDashboard()">
+                </div>
+                <div class="filter-group">
+                    <label>Comercio:</label>
+                    <select id="dash-filter-merchant" onchange="renderDashboard()">
+                        <option value="all">Todos los comercios</option>
+                        <option value="1">Burger Gourmet</option>
+                        <option value="2">Farmacia San José</option>
+                        <option value="3">Supermercado Rindemax</option>
+                        <option value="4">Greegory's Coffee</option>
+                    </select>
+                </div>
+                <button class="clear-filters-btn" onclick="clearDashFilters()">
+                    <i data-lucide="filter-x"></i> Limpiar
+                </button>
+            </div>
+
+            <div class="dashboard-stats" style="margin-top: 24px;">
+                <!-- Columna 1: Pedidos -->
                 <div class="stat-card">
                     <div class="stat-icon" style="background: var(--accent-orange); color: var(--primary);">
                         <i data-lucide="shopping-cart"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Pedidos Hoy</h3>
+                        <h3>Pedidos en Rango</h3>
                         <p id="stat-orders-today">0</p>
                     </div>
                 </div>
-                <div class="stat-card">
+
+                <!-- Columna 2: Ingresos DoraYaa -->
+                <div class="stat-card" style="border-left: 4px solid var(--primary);">
                     <div class="stat-icon" style="background: var(--accent-green); color: #2E7D32;">
-                        <i data-lucide="dollar-sign"></i>
+                        <i data-lucide="award"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Ingresos Hoy</h3>
+                        <h3>Ingresos DoraYaa</h3>
                         <p id="stat-revenue-today">$0</p>
                     </div>
                 </div>
+
+                <!-- Columna 3: Ingresos Comercios -->
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #E3F2FD; color: #1565C0;">
-                        <i data-lucide="calendar"></i>
+                        <i data-lucide="store"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Pedidos Mes</h3>
-                        <p id="stat-orders-month">0</p>
+                        <h3>Ingresos Comercios</h3>
+                        <p id="stat-revenue-merchant">$0</p>
                     </div>
                 </div>
+
+                <!-- Columna 4: Ingresos Domiciliarios -->
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
-                        <i data-lucide="trending-up"></i>
+                    <div class="stat-icon" style="background: #FFF9C4; color: #FBC02D;">
+                        <i data-lucide="bike"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Ingresos Mes</h3>
-                        <p id="stat-revenue-month">$0</p>
+                        <h3>Ingresos Domiciliarios</h3>
+                        <p id="stat-revenue-driver">$0</p>
                     </div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-icon" style="background: var(--accent-blue); color: #1565C0;">
                         <i data-lucide="clock"></i>

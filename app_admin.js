@@ -105,47 +105,56 @@ function renderDashboard() {
 
 function updateStats() {
     let revenueToday = 0;
-    let ordersToday = 0;
-    let revenueMonth = 0;
-    let ordersMonth = 0;
+    let revenueMerchant = 0;
+    let revenueDriver = 0;
+    let ordersCount = 0;
     let pendingCount = 0;
 
-    const now = new Date();
-    const todayStr = now.toDateString();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const filterStart = document.getElementById('dash-filter-date-start').value;
+    const filterEnd = document.getElementById('dash-filter-date-end').value;
+    const filterMerchant = document.getElementById('dash-filter-merchant').value;
 
     orders.forEach(o => {
-        const orderDate = new Date(o.created_at);
+        const oDateStr = new Date(o.created_at).toISOString().split('T')[0];
 
-        // --- Calcular ingreso (comisión de DoraYaa) ---
-        // 15% del costo de los productos y 25% del envío (si lo hay)
+        // 1. Aplicar Filtro de Fecha si existe
+        if (filterStart && oDateStr < filterStart) return;
+        if (filterEnd && oDateStr > filterEnd) return;
+
+        // 2. Aplicar Filtro de Comercio si existe
         const itemsList = o.items || [];
-        const itemCost = itemsList.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty)), 0);
+        const belongsToMerchant = filterMerchant === 'all' || itemsList.some(i => i.restaurantId.toString() === filterMerchant);
+        if (!belongsToMerchant) return;
+
+        // --- Calcular Ingresos si pasa los filtros ---
+        const itemCost = itemsList.reduce((sum, item) => {
+            // Si hay filtro de comercio, solo sumamos lo de ese comercio para Merchant Revenue
+            if (filterMerchant !== 'all' && item.restaurantId.toString() !== filterMerchant) return sum;
+            return sum + (Number(item.price) * Number(item.qty));
+        }, 0);
         
-        let deliveryCost = Number(o.total) - itemCost;
-        if (deliveryCost < 0) deliveryCost = 0; // Práctica de seguridad
+        // El envío se cuenta solo si la orden tiene items del comercio filtrado (o si es 'all')
+        let deliveryCost = Number(o.total) - itemsList.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
+        if (deliveryCost < 0) deliveryCost = 0;
 
-        const dyaRevenue = (itemCost * 0.15) + (deliveryCost * 0.25);
-        // ----------------------------------------------
+        // DoraYaa Revenue (Comisión 15% productos + 25% envío)
+        revenueToday += (itemCost * 0.15) + (deliveryCost * 0.25);
+        
+        // Merchant Revenue (85% de sus productos)
+        revenueMerchant += (itemCost * 0.85);
 
-        if (orderDate.toDateString() === todayStr) {
-            revenueToday += dyaRevenue;
-            ordersToday++;
-        }
+        // Driver Revenue (75% del envío)
+        // Nota: Solo sumamos envío si estamos en vista 'all' o si el comercio es parte de la orden
+        revenueDriver += (deliveryCost * 0.75);
 
-        if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
-            revenueMonth += dyaRevenue;
-            ordersMonth++;
-        }
-
+        ordersCount++;
         if (o.status === 'pending') pendingCount++;
     });
 
-    document.getElementById('stat-orders-today').innerText = ordersToday;
+    document.getElementById('stat-orders-today').innerText = ordersCount;
     document.getElementById('stat-revenue-today').innerText = formatPrice(revenueToday);
-    document.getElementById('stat-orders-month').innerText = ordersMonth;
-    document.getElementById('stat-revenue-month').innerText = formatPrice(revenueMonth);
+    document.getElementById('stat-revenue-merchant').innerText = formatPrice(revenueMerchant);
+    document.getElementById('stat-revenue-driver').innerText = formatPrice(revenueDriver);
     document.getElementById('stat-pending').innerText = pendingCount;
 }
 
@@ -369,12 +378,20 @@ function clearFilters() {
     renderDashboard();
 }
 
+function clearDashFilters() {
+    document.getElementById('dash-filter-date-start').value = '';
+    document.getElementById('dash-filter-date-end').value = '';
+    document.getElementById('dash-filter-merchant').value = 'all';
+    renderDashboard();
+}
+
 // Global expose
 window.showSection = showSection;
 window.toggleSidebar = toggleSidebar;
 window.logout = logout;
 window.loadOrders = loadOrders;
 window.clearFilters = clearFilters;
+window.clearDashFilters = clearDashFilters;
 
 async function updateOrderStatus(orderId, newStatus) {
     // Optimistic update
