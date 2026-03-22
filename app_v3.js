@@ -514,8 +514,22 @@ function removeFromCart(cartId) {
 
 function updateTotals() {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    const envio = cart.length > 0 ? 6000 : 0;
+    const total = subtotal + envio;
+    
     document.getElementById('cart-subtotal').innerText = formatPrice(subtotal);
-    document.getElementById('cart-total').innerText = formatPrice(subtotal);
+    
+    // Si metimos al DOM la nueva fila (como ya hicimos en index.html)
+    const cartDelivery = document.getElementById('cart-delivery');
+    if (cartDelivery) {
+        cartDelivery.innerText = formatPrice(envio);
+        cartDelivery.parentElement.style.display = cart.length > 0 ? 'flex' : 'none';
+        
+        // Configurar los rotulos para multi-idioma
+        cartDelivery.previousElementSibling.innerText = currentLang === 'es' ? 'Envío (Tarifa Fija)' : 'Delivery Fee (Fixed)';
+    }
+
+    document.getElementById('cart-total').innerText = formatPrice(total);
 }
 
 function openCheckoutForm() {
@@ -564,8 +578,8 @@ async function submitOrder() {
             sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...';
         }
 
-        // Calculate total locally to avoid undefined reference errors
-        const orderTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+        // Calculate subtotal and then add fixed 6000 delivery fee
+        const orderTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0) + 6000;
 
         // Save to Supabase (cross-device, real-time)
         const { error } = await getSupabaseClient().from('orders').insert([{
@@ -612,7 +626,7 @@ async function submitOrder() {
                     restauranteNumero: numRestaurante,
                     qrUrl: qrPagar,
                     totalPedido: formatPrice(orderTotal),
-                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal: ${formatPrice(orderTotal)}\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
+                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal a pagar: ${formatPrice(orderTotal)} (incluye $6.000 envío)\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
                 })
             });
         } catch (botErr) {
