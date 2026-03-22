@@ -44,6 +44,8 @@ client.on('ready', () => {
 
 // Evento: Cuando llega o enviamos un mensaje a WhatsApp
 client.on('message_create', async (message) => {
+    console.log(`[DEBUG] Mensaje detectado desde ${message.from}: "${message.body}" (fromMe: ${message.fromMe})`);
+
     // Si el mensaje es automatizado del propio bot hacia un restaurante o cliente (Evitar bucles de ecos)
     if (message.fromMe && message.body.includes('🛎️ ¡Nueva orden') || message.body.includes('✔️ Listo.')) return;
 
@@ -51,10 +53,15 @@ client.on('message_create', async (message) => {
     let pendingOrderId = null;
     let orderData = null;
 
+    // Obtener el contacto real del mensaje para descubrir el número oculto detrás de los IDs engañosos (@lid)
+    const contact = await message.getContact();
+    const realSenderNumber = contact.number || message.from.split('@')[0];
+
     for (const [id, order] of Object.entries(pendingOrders)) {
-        // Validación laxa para admitir IDs con @lid (Linked Devices de Meta) o el número regular
-        const baseNumber = order.restauranteNumero.split('@')[0];
-        if (message.from === order.restauranteNumero || message.from.includes(baseNumber)) {
+        const baseNumber = order.restauranteNumero.split('@')[0]; // Ej: "573222737975"
+        
+        // Comparamos el número real extraído vs el número configurado
+        if (realSenderNumber === baseNumber || message.from.includes(baseNumber)) {
             pendingOrderId = id;
             orderData = order;
             break;
@@ -66,9 +73,11 @@ client.on('message_create', async (message) => {
 
     const textMsg = message.body.trim().toUpperCase();
 
-    if (textMsg === 'SI') {
+    // Soportar "SI" y "SÍ" con tilde
+    if (textMsg === 'SI' || textMsg === 'SÍ') {
         console.log(`✅ Restaurante aceptó orden #${pendingOrderId}`);
-        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado. Transfiere el valor a este QR:`;
+        const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
+        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\nRealiza el pago de ${totalTexto} a la cuenta de Nequi XXXXXXXXX, y empezaremos a preparar lo que tanto deseas.`;
         
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
 
@@ -110,7 +119,7 @@ client.initialize();
 // 2. Servidor API para que la Web le envíe los pedidos =======================
 app.post('/api/send-order', async (req, res) => {
     try {
-        const { clienteNumero, restauranteNumero, detallesPedido, qrUrl } = req.body;
+        const { clienteNumero, restauranteNumero, detallesPedido, qrUrl, totalPedido } = req.body;
 
         const formatClientNumber = `${clienteNumero}@c.us`;
         const formatRestNumber = `${restauranteNumero}@c.us`;
@@ -122,6 +131,7 @@ app.post('/api/send-order', async (req, res) => {
             clienteNumero: formatClientNumber,
             restauranteNumero: formatRestNumber,
             detallesPedido: detallesPedido,
+            totalPedido: totalPedido,
             qrUrl: qrUrl || 'https://i.imgur.com/TuImagenQR.png', // Fallback si no mandan QR
             status: 'esperando_respuesta_restaurante'
         };

@@ -610,6 +610,7 @@ async function submitOrder() {
                     clienteNumero: formatPhone,
                     restauranteNumero: numRestaurante,
                     qrUrl: qrPagar,
+                    totalPedido: formatPrice(orderTotal),
                     detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal: ${formatPrice(orderTotal)}\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
                 })
             });
