@@ -602,7 +602,10 @@ async function submitOrder() {
 
             await fetch('https://pentarchical-knuckly-tenley.ngrok-free.dev/api/send-order', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true' // Salta la pantalla de advertencia gratuita de Ngrok
+                },
                 body: JSON.stringify({
                     clienteNumero: formatPhone,
                     restauranteNumero: numRestaurante,
