@@ -607,6 +607,7 @@ async function submitOrder() {
                     'ngrok-skip-browser-warning': 'true' // Salta la pantalla de advertencia gratuita de Ngrok
                 },
                 body: JSON.stringify({
+                    orderId: orderId,
                     clienteNumero: formatPhone,
                     restauranteNumero: numRestaurante,
                     qrUrl: qrPagar,

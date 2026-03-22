@@ -14,9 +14,9 @@ let pendingOrders = {};
 const client = new Client({
     authStrategy: new LocalAuth(),
     authTimeoutMs: 0, // Desactiva el timeout de 45seg, crucial para servidores gratuitos lentos
-    puppeteer: { 
+    puppeteer: {
         args: [
-            '--no-sandbox', 
+            '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-accelerated-2d-canvas',
@@ -59,7 +59,7 @@ client.on('message_create', async (message) => {
 
     for (const [id, order] of Object.entries(pendingOrders)) {
         const baseNumber = order.restauranteNumero.split('@')[0]; // Ej: "573222737975"
-        
+
         // Comparamos el número real extraído vs el número configurado
         if (realSenderNumber === baseNumber || message.from.includes(baseNumber)) {
             pendingOrderId = id;
@@ -78,7 +78,7 @@ client.on('message_create', async (message) => {
         console.log(`✅ Restaurante aceptó orden #${pendingOrderId}`);
         const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
         const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\nRealiza el pago de ${totalTexto} a la cuenta de Nequi XXXXXXXXX, y empezaremos a preparar lo que tanto deseas.`;
-        
+
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
 
         await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Le confirmé el pedido al cliente.`);
@@ -105,15 +105,15 @@ client.initialize();
 // 2. Servidor API para que la Web le envíe los pedidos =======================
 app.post('/api/send-order', async (req, res) => {
     try {
-        const { clienteNumero, restauranteNumero, detallesPedido, qrUrl, totalPedido } = req.body;
+        const { orderId, clienteNumero, restauranteNumero, detallesPedido, qrUrl, totalPedido } = req.body;
 
         const formatClientNumber = `${clienteNumero}@c.us`;
         const formatRestNumber = `${restauranteNumero}@c.us`;
 
-        const orderId = Date.now().toString().slice(-5); // ID de orden corto
+        const finalOrderId = orderId || Date.now().toString().slice(-5); // Usar el ID de Supabase
 
         // Almacenamos la info con el número dinámico del Restaurante 
-        pendingOrders[orderId] = {
+        pendingOrders[finalOrderId] = {
             clienteNumero: formatClientNumber,
             restauranteNumero: formatRestNumber,
             detallesPedido: detallesPedido,
@@ -122,13 +122,13 @@ app.post('/api/send-order', async (req, res) => {
             status: 'esperando_respuesta_restaurante'
         };
 
-        let msgRestaurante = `🛎️ ¡Nueva orden de DoraYaa (#${orderId})!\n\n`;
+        let msgRestaurante = `🛎️ ¡Nueva orden de DoraYaa (#${finalOrderId})!\n\n`;
         msgRestaurante += `Detalles:\n${detallesPedido}\n\n`;
         msgRestaurante += `¿Puedes preparar esta orden?\nResponde "SI" o "NO".`;
 
         await client.sendMessage(formatRestNumber, msgRestaurante);
 
-        console.log(`[API] Orden #${orderId} reenviada al Restaurante ${restauranteNumero}.`);
+        console.log(`[API] Orden #${finalOrderId} reenviada al Restaurante ${restauranteNumero}.`);
         res.status(200).json({ success: true, message: 'Orden enviada al bot exitosamente.' });
     } catch (error) {
         console.error('Error en /api/send-order:', error);
