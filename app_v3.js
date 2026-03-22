@@ -600,7 +600,7 @@ async function submitOrder() {
             const numRestaurante = restaurantApp && restaurantApp.whatsapp ? restaurantApp.whatsapp : '573222737975'; // fallback
             const qrPagar = restaurantApp && restaurantApp.qrUrl ? restaurantApp.qrUrl : '';
 
-            await fetch('http://localhost:3000/api/send-order', {
+            await fetch('https://dorayaa-bot.onrender.com/api/send-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
