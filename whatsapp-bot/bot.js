@@ -81,20 +81,6 @@ client.on('message_create', async (message) => {
         
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
 
-        // Si el QR que nos enviaron parece un enlace válido (https), lo enviamos como IMAGEN
-        if (orderData.qrUrl && orderData.qrUrl.startsWith('http')) {
-            try {
-                const media = await MessageMedia.fromUrl(orderData.qrUrl);
-                await client.sendMessage(orderData.clienteNumero, media);
-            } catch (errorImage) {
-                console.error('Error enviando la imagen del QR, enviando enlace en texto en su lugar:', errorImage);
-                await client.sendMessage(orderData.clienteNumero, `Enlace del QR: ${orderData.qrUrl}`);
-            }
-        } else {
-            // Si el restaurante configuró texto de fallback en lugar de QR
-            await client.sendMessage(orderData.clienteNumero, orderData.qrUrl);
-        }
-
         await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Le confirmé el pedido al cliente.`);
         delete pendingOrders[pendingOrderId];
 
