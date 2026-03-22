@@ -13,6 +13,7 @@ let pendingOrders = {};
 // 1. Configurar y arrancar WhatsApp Web =======================
 const client = new Client({
     authStrategy: new LocalAuth(),
+    authTimeoutMs: 0, // Desactiva el timeout de 45seg, crucial para servidores gratuitos lentos
     puppeteer: { 
         args: [
             '--no-sandbox', 
@@ -21,8 +22,14 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--disable-gpu'
-        ] 
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--disable-extensions',
+            '--disable-default-apps',
+            '--disable-background-networking',
+            '--mute-audio'
+        ],
+        headless: true
     }
 });
 
