@@ -118,13 +118,24 @@ function updateStats() {
     orders.forEach(o => {
         const orderDate = new Date(o.created_at);
 
+        // --- Calcular ingreso (comisión de DoraYaa) ---
+        // 15% del costo de los productos y 25% del envío (si lo hay)
+        const itemsList = o.items || [];
+        const itemCost = itemsList.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty)), 0);
+        
+        let deliveryCost = Number(o.total) - itemCost;
+        if (deliveryCost < 0) deliveryCost = 0; // Práctica de seguridad
+
+        const dyaRevenue = (itemCost * 0.15) + (deliveryCost * 0.25);
+        // ----------------------------------------------
+
         if (orderDate.toDateString() === todayStr) {
-            revenueToday += Number(o.total);
+            revenueToday += dyaRevenue;
             ordersToday++;
         }
 
         if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
-            revenueMonth += Number(o.total);
+            revenueMonth += dyaRevenue;
             ordersMonth++;
         }
 
