@@ -106,8 +106,33 @@
         <section id="orders-section" class="admin-section hidden">
             <div class="recent-orders">
                 <div class="section-header">
-                    <h2>Pedidos en Tiempo Real</h2>
+                    <h2>Gestión de Pedidos</h2>
                     <button class="refresh-btn" onclick="loadOrders()"><i data-lucide="refresh-cw"></i> Actualizar</button>
+                </div>
+
+                <!-- Barra de Filtros Avanzados -->
+                <div class="admin-filters">
+                    <div class="filter-group">
+                        <label>Desde:</label>
+                        <input type="date" id="filter-date-start" onchange="renderDashboard()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Hasta:</label>
+                        <input type="date" id="filter-date-end" onchange="renderDashboard()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Comercio:</label>
+                        <select id="filter-merchant" onchange="renderDashboard()">
+                            <option value="all">Todos los comercios</option>
+                            <option value="1">Burger Gourmet</option>
+                            <option value="2">Farmacia San José</option>
+                            <option value="3">Supermercado Rindemax</option>
+                            <option value="4">Greegory's Coffee</option>
+                        </select>
+                    </div>
+                    <button class="clear-filters-btn" onclick="clearFilters()">
+                        <i data-lucide="filter-x"></i> Limpiar
+                    </button>
                 </div>
 
                 <div class="orders-table-container">

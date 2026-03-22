@@ -202,7 +202,40 @@ function renderOrdersTable() {
     const tbody = document.getElementById('orders-body');
     const noOrders = document.getElementById('no-orders');
 
-    if (orders.length === 0) {
+    // --- Lógica de Filtros ---
+    const filterStart = document.getElementById('filter-date-start').value;
+    const filterEnd = document.getElementById('filter-date-end').value;
+    const filterMerchant = document.getElementById('filter-merchant').value;
+
+    let filtered = [...orders];
+
+    // 1. Filtro de Fecha (Rango)
+    if (filterStart || filterEnd) {
+        filtered = filtered.filter(o => {
+            const oDate = new Date(o.created_at).setHours(0,0,0,0);
+            
+            if (filterStart) {
+                const startDate = new Date(filterStart).setHours(0,0,0,0);
+                if (oDate < startDate) return false;
+            }
+            if (filterEnd) {
+                const endDate = new Date(filterEnd).setHours(0,0,0,0);
+                if (oDate > endDate) return false;
+            }
+            return true;
+        });
+    }
+
+    // 2. Filtro de Comercio
+    if (filterMerchant !== 'all') {
+        filtered = filtered.filter(o => {
+            const items = o.items || [];
+            // Si el pedido tiene al menos un item del comercio seleccionado
+            return items.some(i => i.restaurantId.toString() === filterMerchant);
+        });
+    }
+
+    if (filtered.length === 0) {
         tbody.innerHTML = '';
         noOrders.style.display = 'flex';
         return;
@@ -210,7 +243,7 @@ function renderOrdersTable() {
 
     noOrders.style.display = 'none';
 
-    tbody.innerHTML = orders.map(order => {
+    tbody.innerHTML = filtered.map(order => {
         const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const items = order.items || [];
@@ -335,11 +368,19 @@ async function logout() {
     }
 }
 
+function clearFilters() {
+    document.getElementById('filter-date-start').value = '';
+    document.getElementById('filter-date-end').value = '';
+    document.getElementById('filter-merchant').value = 'all';
+    renderDashboard();
+}
+
 // Global expose
 window.showSection = showSection;
 window.toggleSidebar = toggleSidebar;
 window.logout = logout;
 window.loadOrders = loadOrders;
+window.clearFilters = clearFilters;
 
 async function updateOrderStatus(orderId, newStatus) {
     // Optimistic update
