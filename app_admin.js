@@ -318,7 +318,8 @@ async function logout() {
     });
 
     if (result.isConfirmed) {
-        sessionStorage.removeItem('adminLoggedIn');
+        // Cerrar sesión en el servidor
+        await getSupabaseClient().auth.signOut();
         window.location.href = 'index.html';
     }
 }
@@ -374,13 +375,17 @@ async function updateOrderStatus(orderId, newStatus) {
 
 // ─── Authentication Gate ──────────────────────────────────────────────────────
 async function checkAdminAuth() {
-    const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-    if (isLoggedIn === 'true') {
+    // Comprobar si hay una sesión válida en Supabase (seguro e inviolable)
+    const { data: { session } } = await getSupabaseClient().auth.getSession();
+    
+    if (session) {
+        // Ya está logueado correctamente
         await loadOrders();
         subscribeToOrders();
         return;
     }
 
+    // No hay sesión, mostrar popup
     const { value: formValues } = await Swal.fire({
         title: 'Acceso Administrativo',
         html:
@@ -409,11 +414,19 @@ async function checkAdminAuth() {
 
     if (formValues) {
         const [user, pass] = formValues;
-        if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            await loadOrders();
-            subscribeToOrders();
-        } else {
+        
+        Swal.fire({
+            title: 'Autenticando...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        const { data, error } = await getSupabaseClient().auth.signInWithPassword({
+            email: user.trim(),
+            password: pass.trim()
+        });
+
+        if (error) {
             await Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -421,6 +434,11 @@ async function checkAdminAuth() {
                 confirmButtonColor: '#d33'
             });
             window.location.href = 'index.html';
+        } else {
+            // Login exitoso, cerrar el Swal de loading y cargar datos
+            Swal.close();
+            await loadOrders();
+            subscribeToOrders();
         }
     } else {
         // User cancelled

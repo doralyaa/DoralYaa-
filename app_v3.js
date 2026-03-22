@@ -79,10 +79,10 @@ function formatPrice(price) {
 }
 
 const restaurants = [
-    { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png" },
-    { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png" },
-    { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg" },
-    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" }
+    { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
+    { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
+    { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573222737977", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
+    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
 ];
 
 const products = [
@@ -400,7 +400,7 @@ function updateCarousel() {
 function addToCartPopular(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
-    
+
     // If it has options or description, show modal
     if (product.options || product.description) {
         openOptionsModal(productId, 1);
@@ -552,16 +552,16 @@ async function submitOrder() {
     try {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numbers = '0123456789';
-        const randomId = letters[Math.floor(Math.random() * letters.length)] + 
-                         letters[Math.floor(Math.random() * letters.length)] + 
-                         numbers[Math.floor(Math.random() * numbers.length)] + 
-                         numbers[Math.floor(Math.random() * numbers.length)];
+        const randomId = letters[Math.floor(Math.random() * letters.length)] +
+            letters[Math.floor(Math.random() * letters.length)] +
+            numbers[Math.floor(Math.random() * numbers.length)] +
+            numbers[Math.floor(Math.random() * numbers.length)];
         const orderId = 'ORD-' + randomId;
 
         // Disable button to prevent double submission
-        if (sendBtn) { 
-            sendBtn.disabled = true; 
-            sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...'; 
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...';
         }
 
         // Calculate total locally to avoid undefined reference errors
@@ -589,13 +589,39 @@ async function submitOrder() {
 
         if (error) throw error;
 
+        // --- Petición al Bot Local de WhatsApp ---
+        try {
+            const detalles = cart.map(item => `${item.qty}x ${item.name[currentLang]} (${item.option ? item.option : 'Sin opción'})`).join('\n');
+            let formatPhone = phoneInput.replace(/\D/g, ''); // Quitar cualquier letra/espacio
+            if (formatPhone.length === 10) formatPhone = '57' + formatPhone; // Prevenir num de col sin indicativo
+
+            // Averiguar de qué restaurante es el pedido (usamos el primero del carrito)
+            const restaurantApp = restaurants.find(r => r.id === cart[0].restaurantId);
+            const numRestaurante = restaurantApp && restaurantApp.whatsapp ? restaurantApp.whatsapp : '573222737975'; // fallback
+            const qrPagar = restaurantApp && restaurantApp.qrUrl ? restaurantApp.qrUrl : '';
+
+            await fetch('http://localhost:3000/api/send-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clienteNumero: formatPhone,
+                    restauranteNumero: numRestaurante,
+                    qrUrl: qrPagar,
+                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal: ${formatPrice(orderTotal)}\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
+                })
+            });
+        } catch (botErr) {
+            console.error('Error comunicando con el bot (asegúrate de que node bot.js esté encendido):', botErr);
+        }
+        // ------------------------------------------
+
         // Reset Cart and Form
         cart = [];
         document.getElementById('customer-name').value = '';
         document.getElementById('customer-address').value = '';
         document.getElementById('customer-phone').value = '';
         document.getElementById('order-notes').value = '';
-        
+
         closeCheckoutForm();
         closeCart();
         renderCartItems();
@@ -624,9 +650,9 @@ async function submitOrder() {
             confirmButtonColor: '#d33'
         });
     } finally {
-        if (sendBtn) { 
-            sendBtn.disabled = false; 
-            sendBtn.innerText = originalBtnText; 
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerText = originalBtnText;
         }
     }
 }
@@ -680,16 +706,29 @@ async function adminLogin() {
 
     if (formValues) {
         const [user, pass] = formValues;
-        if (user.trim() === 'gusbe11@hotmail.com' && pass.trim() === '1017256260Holahola') {
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            window.location.href = 'admin.html';
-        } else {
+
+        Swal.fire({
+            title: currentLang === 'es' ? 'Autenticando...' : 'Authenticating...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        // Autenticación real con Supabase
+        const { data, error } = await getSupabaseClient().auth.signInWithPassword({
+            email: user.trim(),
+            password: pass.trim()
+        });
+
+        if (error) {
             Swal.fire({
                 icon: 'error',
                 title: currentLang === 'es' ? 'Error' : 'Error',
                 text: currentLang === 'es' ? 'Credenciales incorrectas.' : 'Incorrect credentials.',
                 confirmButtonColor: '#d33'
             });
+        } else {
+            // Redirigir si el login fue exitoso
+            window.location.href = 'admin.html';
         }
     }
 }
