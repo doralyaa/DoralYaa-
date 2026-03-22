@@ -692,22 +692,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = e.target.value.trim().toLowerCase();
             const restaurantGrid = document.getElementById('restaurant-grid');
             const restsHeader = document.getElementById('rests-header');
+            const restsTitle = document.getElementById('rests-title');
             const popularCarousel = document.getElementById('popular-carousel');
             const popularTitle = document.getElementById('popular-title');
             const catContainer = document.getElementById('categories-container');
             const catTitle = document.getElementById('cat-title');
             const productsGrid = document.getElementById('product-grid');
             const productsHeader = document.getElementById('restaurant-products-header');
-            const prodTitle = document.getElementById('prod-title');
 
             if (query.length === 0) {
-                // Restaurar vista 
-                if (restaurantGrid) restaurantGrid.style.display = 'grid';
-                if (restsHeader) restsHeader.style.display = 'flex';
+                // Restaurar vista original
+                currentCategory = 'all';
+                renderCategories();
+                renderRestaurants();
                 if (popularCarousel) popularCarousel.style.display = 'block';
                 if (popularTitle) popularTitle.parentElement.style.display = 'block';
                 if (catContainer) catContainer.style.display = 'flex';
                 if (catTitle) catTitle.parentElement.style.display = 'flex';
+                
+                if (restsHeader) restsHeader.style.display = 'flex';
+                if (restsTitle) restsTitle.innerText = translations[currentLang].rests;
                 
                 productsGrid.style.display = 'none';
                 productsHeader.style.display = 'none';
@@ -715,51 +719,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Ocultar inicio
-            if (restaurantGrid) restaurantGrid.style.display = 'none';
-            if (restsHeader) restsHeader.style.display = 'none';
+            // Ocultar inicio (carruseles y categorías)
             if (popularCarousel) popularCarousel.style.display = 'none';
             if (popularTitle) popularTitle.parentElement.style.display = 'none';
             if (catContainer) catContainer.style.display = 'none';
             if (catTitle) catTitle.parentElement.style.display = 'none';
+            
+            // Ocultar grilla de productos si estaba abierta
+            productsGrid.style.display = 'none';
+            productsHeader.style.display = 'none';
 
-            // Mostrar grilla
-            productsGrid.style.display = 'grid';
-            productsHeader.style.display = 'flex';
-            prodTitle.innerText = currentLang === 'es' ? 'Resultados de búsqueda' : 'Search Results';
+            // Mostrar grilla de Restaurantes para los resultados
+            if (restaurantGrid) restaurantGrid.style.display = 'grid';
+            if (restsHeader) restsHeader.style.display = 'flex';
+            if (restsTitle) restsTitle.innerText = currentLang === 'es' ? 'Resultados de búsqueda' : 'Search Results';
 
-            // Filtrar y renderizar
-            const filteredProducts = products.filter(p => 
-                p.name.es.toLowerCase().includes(query) || 
-                p.name.en.toLowerCase().includes(query) ||
-                (p.description && p.description.es && p.description.es.toLowerCase().includes(query))
-            );
+            // Encontrar restaurantes que coincidan (Set para evitar duplicados)
+            const matchedRestaurants = new Set();
+            const catTranslates = translations[currentLang].categories;
 
-            productsGrid.innerHTML = filteredProducts.length > 0 ? filteredProducts.map(p => {
-                const inCart = cart.find(item => item.id === p.id);
-                const badgeText = currentLang === 'es' ? 'en carrito' : 'in cart';
-                const badgeHtml = inCart ? `<div class="in-cart-badge">${inCart.qty} ${badgeText}</div>` : '';
-                return `
-                <div class="product-card">
-                    <div class="product-img-container" onclick="openProductDetails(${p.id}, 1)" style="cursor: pointer;">
-                        <img src="${p.image}" alt="${p.name[currentLang]}" class="product-img">
-                        ${badgeHtml}
+            // 1. Por restaurante o categoría (Farmacia, Supermercado, etc.)
+            restaurants.forEach(r => {
+                const catName = catTranslates[r.category] ? catTranslates[r.category].toLowerCase() : '';
+                const rName = r.name.toLowerCase();
+
+                if (rName.includes(query) || catName.includes(query)) {
+                    matchedRestaurants.add(r.id);
+                }
+            });
+
+            // 2. Por producto que pertenece al restaurante
+            products.forEach(p => {
+                const pNameEs = p.name.es ? p.name.es.toLowerCase() : '';
+                const pNameEn = p.name.en ? p.name.en.toLowerCase() : '';
+                const pDescEs = (p.description && p.description.es) ? p.description.es.toLowerCase() : '';
+                
+                if (pNameEs.includes(query) || pNameEn.includes(query) || pDescEs.includes(query)) {
+                    matchedRestaurants.add(p.restaurantId);
+                }
+            });
+
+            // Filtrar y renderizar restaurantes
+            const filteredRests = restaurants.filter(r => matchedRestaurants.has(r.id));
+            
+            restaurantGrid.innerHTML = filteredRests.length > 0 ? filteredRests.map(r => `
+                <div class="restaurant-card" onclick="showRestaurantProducts(${r.id})">
+                    <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">
+                    <div class="restaurant-info">
+                        <h3>${r.name}</h3>
+                        <p>${translations[currentLang].categories[r.category]}</p>
                     </div>
-                    <div class="product-info" onclick="openProductDetails(${p.id}, 1)" style="cursor: pointer;">
-                        <h3>${p.name[currentLang]}</h3>
-                        <p>${formatPrice(p.price)}</p>
-                    </div>
-                    <div class="product-controls">
-                        <button class="control-btn" onclick="updateQty(this, -1)">-</button>
-                        <span class="qty">1</span>
-                        <button class="control-btn" onclick="updateQty(this, 1)">+</button>
-                    </div>
-                    <button class="add-to-cart" onclick="addToCart(this, ${p.id})">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                        ${translations[currentLang].addToCart}
-                    </button>
-                </div>`;
-            }).join('') : `<p style="text-align:center; padding: 20px; grid-column: 1/-1;">${currentLang === 'es' ? 'No se encontraron resultados' : 'No results found'}</p>`;
+                </div>
+            `).join('') : `<p style="text-align:center; padding: 20px; grid-column: 1/-1;">${currentLang === 'es' ? 'No se encontraron resultados' : 'No results found'}</p>`;
         });
     }
 });
