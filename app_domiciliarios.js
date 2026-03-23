@@ -1,0 +1,315 @@
+// ─── Supabase Setup ────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://djrhmfwsipjzqvfxfoer.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const restaurants = [
+    { id: 1, name: "Burger Gourmet", image: "cat_food.png" },
+    { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png" },
+    { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg" },
+    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg" }
+];
+
+let allOrders = [];
+let myDriverName = localStorage.getItem('domiciliario_name') || null;
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(price);
+}
+
+// ─── Inicialización ────────────────────────────────────────────────────────
+async function init() {
+    console.log("[INIT] Iniciando aplicación de domiciliarios...");
+    updateDriverDisplay();
+    
+    // Probar conexión a Supabase
+    try {
+        const { data, error } = await supabaseClient.from('orders').select('count', { count: 'exact', head: true });
+        if (error) throw error;
+        console.log("[INIT] Conexión a Supabase exitosa.");
+    } catch (e) {
+        console.error("[INIT] ERROR DE CONEXIÓN:", e);
+        Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con Supabase. Revisa tu conexión.' });
+    }
+
+    await loadAvailableOrders();
+    subscribeToChanges();
+    if (window.lucide) lucide.createIcons();
+}
+
+function updateDriverDisplay() {
+    const display = document.getElementById('driver-display');
+    const nameSpan = document.getElementById('current-driver-name');
+    if (myDriverName) {
+        display.style.display = 'flex';
+        nameSpan.innerText = myDriverName;
+    } else {
+        display.style.display = 'none';
+    }
+}
+
+async function changeDriver() {
+    const { value: name } = await Swal.fire({
+        title: 'Tu Nombre',
+        input: 'text',
+        inputLabel: 'Ingresa tu nombre para identificarte',
+        inputValue: myDriverName || '',
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) return '¡Necesitas un nombre!';
+        }
+    });
+
+    if (name) {
+        myDriverName = name;
+        localStorage.setItem('domiciliario_name', name);
+        updateDriverDisplay();
+        renderOrders();
+    }
+}
+
+// ─── Carga de Datos ────────────────────────────────────────────────────────
+async function loadAvailableOrders() {
+    console.log("[DEBUG] Cargando pedidos recientes...");
+    // Traer los últimos 50 pedidos (aunque no estén pagados aún, para tenerlos en memoria para Realtime)
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    if (error) {
+        console.error('[ERROR] al cargar pedidos:', error);
+        return;
+    }
+
+    allOrders = data || [];
+    console.log(`[DEBUG] ${allOrders.length} pedidos cargados en memoria.`);
+    renderOrders();
+}
+
+function subscribeToChanges() {
+    console.log("[DEBUG] Iniciando suscripción Realtime...");
+    supabaseClient
+        .channel('delivery-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+            console.log(`[REALTIME] ${payload.eventType} en orders:`, payload.new);
+            
+            if (payload.eventType === 'INSERT') {
+                allOrders.unshift(payload.new);
+            } else if (payload.eventType === 'UPDATE') {
+                const idx = allOrders.findIndex(o => o.id === (payload.new?.id || payload.old?.id));
+                if (idx > -1) {
+                    allOrders[idx] = { ...allOrders[idx], ...payload.new };
+                } else {
+                    allOrders.unshift(payload.new);
+                }
+            } else if (payload.eventType === 'DELETE') {
+                allOrders = allOrders.filter(o => o.id !== payload.old.id);
+            }
+            renderOrders();
+        })
+        .subscribe((status) => {
+            console.log("[REALTIME] Estado de suscripción:", status);
+        });
+}
+
+// ─── Renderizado ──────────────────────────────────────────────────────────
+function renderOrders() {
+    const list = document.getElementById('orders-list');
+    const noOrders = document.getElementById('no-orders');
+    const myOrderContainer = document.getElementById('assigned-order-card');
+
+    // Filtrar: Disponibles (Pagadas, sin repartidor)
+    const available = allOrders.filter(o => o.is_paid === true && (!o.driver_name || o.driver_name === '') && o.status !== 'delivered');
+    
+    // Filtrar: Mi entrega actual (Pagada, asignada a mí, no entregada aún)
+    const myOrder = allOrders.find(o => o.driver_name === myDriverName && o.status !== 'delivered' && myDriverName !== null);
+
+    console.log(`[RENDER] Disponibles: ${available.length}, Mi Orden: ${myOrder ? myOrder.id : 'Ninguna'}`);
+
+    // Renderizar Disponibles
+    if (available.length === 0) {
+        console.log("[RENDER] No hay pedidos disponibles para mostrar.");
+        if (allOrders.length > 0) {
+            console.log("[DEBUG] Datos crudos en memoria (los primeros 3):");
+            console.table(allOrders.slice(0, 3).map(o => ({ id: o.id, is_paid: o.is_paid, status: o.status, driver: o.driver_name })));
+        }
+        list.innerHTML = '';
+        noOrders.style.display = 'flex';
+    } else {
+        noOrders.style.display = 'none';
+        list.innerHTML = available.map(o => {
+            const items = Array.isArray(o.items) ? o.items : [];
+            const restId = items.length > 0 ? items[0].restaurantId : null;
+            const rest = restaurants.find(r => r.id === restId) || { name: 'DoraYaa!', image: 'logo.png' };
+            
+            return `
+                <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-id">#${o.id}</span>
+                        <span class="order-price">${formatPrice(4500)}</span>
+                    </div>
+                    <div class="order-body">
+                        <div class="info-item">
+                            <i data-lucide="store"></i>
+                            <div>
+                                <span class="label">RESTAURANTE</span>
+                                <span class="value">${rest.name}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="map-pin"></i>
+                            <div>
+                                <span class="label">DIRECCIÓN ENTREGA</span>
+                                <span class="value">${o.customer_address}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="assign-btn" onclick="assignOrder('${o.id}')">
+                        <i data-lucide="crosshair"></i> ASIGNAR PEDIDO
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Renderizar Mi Pedido
+    if (myOrder) {
+        const items = myOrder.items || [];
+        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoraYaa!', image: 'logo.png' };
+        
+        myOrderContainer.innerHTML = `
+            <div class="assigned-card">
+                <div class="order-header">
+                    <span class="order-id">#${myOrder.id}</span>
+                    <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(4500)}</span>
+                </div>
+                <div class="order-body">
+                    <div class="info-item">
+                        <i data-lucide="store"></i>
+                        <div>
+                            <span class="label">RECOGIDA</span>
+                            <span class="value">${rest.name}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="user"></i>
+                        <div>
+                            <span class="label">CLIENTE</span>
+                            <span class="value">${myOrder.customer_name}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="map-pin"></i>
+                        <div>
+                            <span class="label">ENTREGA</span>
+                            <span class="value">${myOrder.customer_address}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="phone"></i>
+                        <div>
+                            <span class="label">TELÉFONO</span>
+                            <span class="value">${myOrder.customer_phone}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-buttons">
+                    <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp">
+                        <i data-lucide="message-circle"></i> WhatsApp
+                    </a>
+                    <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white;">
+                        <i data-lucide="check-circle"></i> ENTREGADO
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        myOrderContainer.innerHTML = `
+            <div class="empty-mini">
+                <p>No tienes entregas asignadas.</p>
+            </div>
+        `;
+    }
+
+    if (window.lucide) lucide.createIcons();
+}
+
+// ─── Acciones ─────────────────────────────────────────────────────────────
+async function assignOrder(orderId) {
+    // Si no tiene nombre, pedírselo primero
+    if (!myDriverName) {
+        await changeDriver();
+        if (!myDriverName) return;
+    }
+
+    const { value: confirmAssignment } = await Swal.fire({
+        title: '¿Asignar Pedido?',
+        text: `Se te asignará el pedido #${orderId} y ya no estará disponible para otros.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1F3A5F',
+        confirmButtonText: 'Sí, tomarlo',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (confirmAssignment) {
+        // Bloqueo atómico: solo actualizar si driver_name sigue NULL
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .update({ driver_name: myDriverName, status: 'processing' })
+            .eq('id', orderId)
+            .is('driver_name', null) // CRÍTICO: Bloqueo para evitar doble asignación
+            .select();
+
+        if (error || !data || data.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: '¡Lo sentimos!',
+                text: 'Este pedido ya fue tomado por otro domiciliario.',
+                confirmButtonColor: '#1F3A5F'
+            });
+        } else {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Pedido Asignado!',
+                text: 'Ya puedes ver la información del cliente.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    }
+}
+
+async function markAsDelivered(orderId) {
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Pedido Entregado?',
+        text: 'Confirma que el cliente ya recibió su pedido.',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        confirmButtonText: 'Sí, entregado',
+        cancelButtonText: 'No aún'
+    });
+
+    if (isConfirmed) {
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({ status: 'delivered' })
+            .eq('id', orderId);
+
+        if (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo completar la entrega.' });
+        }
+    }
+}
+
+// Ventana global
+window.assignOrder = assignOrder;
+window.markAsDelivered = markAsDelivered;
+window.changeDriver = changeDriver;
+
+// Iniciar
+init();

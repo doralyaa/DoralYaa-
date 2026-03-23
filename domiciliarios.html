@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoraYaa! Domiciliarios</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_domiciliarios.css?v=1.0">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <header class="driver-header">
+        <div class="header-content">
+            <img src="logo.png" alt="DoraYaa Logo" class="logo">
+            <h1>Panel Domiciliarios</h1>
+        </div>
+        <div class="driver-info" id="driver-display" style="display: none;">
+            <i data-lucide="user"></i>
+            <span id="current-driver-name">Repartidor</span>
+            <button onclick="changeDriver()">Cambiar</button>
+        </div>
+    </header>
+
+    <main class="driver-main">
+        <section id="available-orders-section">
+            <div class="section-title-row">
+                <h2>Entregas Disponibles</h2>
+                <div class="status-indicator">
+                    <span class="pulse"></span> En vivo
+                </div>
+            </div>
+            
+            <div id="orders-list" class="orders-list">
+                <!-- Pedidos aparecerán aquí -->
+                <div class="loading-state">
+                    <i data-lucide="loader" class="spin"></i>
+                    <p>Buscando entregas...</p>
+                </div>
+            </div>
+
+            <div id="no-orders" class="empty-state" style="display: none;">
+                <i data-lucide="package-search"></i>
+                <p>No hay entregas disponibles en este momento.</p>
+                <span>¡Mantente atento! Los pedidos aparecerán aquí cuando sean pagados.</span>
+            </div>
+        </section>
+
+        <section id="my-orders-section" class="my-orders-section">
+            <h2>Mi Entrega Actual</h2>
+            <div id="assigned-order-card" class="assigned-order-container">
+                <!-- Pedido asignado aparecerá aquí -->
+                <div class="empty-mini">
+                    <p>No tienes entregas asignadas.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer simple -->
+    <footer class="driver-footer">
+        <p>© 2026 DoraYaa! · Delivery Network</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app_domiciliarios.js?v=1.0"></script>
+</body>
+</html>

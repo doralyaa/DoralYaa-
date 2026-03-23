@@ -304,6 +304,13 @@ function renderOrdersTable() {
                     ${notesHtml}
                 </td>
                 <td><strong style="color: var(--text-main);">${formatPrice(order.total)}</strong></td>
+                <td>
+                    <span class="status-badge ${order.is_paid ? 'status-paid' : 'status-unpaid'}" 
+                          onclick="togglePaymentStatus('${order.id}', ${order.is_paid})"
+                          title="Click para cambiar estado de pago">
+                        ${order.is_paid ? 'Pagado' : 'No Pagado'}
+                    </span>
+                </td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -392,6 +399,7 @@ window.logout = logout;
 window.loadOrders = loadOrders;
 window.clearFilters = clearFilters;
 window.clearDashFilters = clearDashFilters;
+window.togglePaymentStatus = togglePaymentStatus;
 
 async function updateOrderStatus(orderId, newStatus) {
     // Optimistic update
@@ -432,6 +440,42 @@ async function updateOrderStatus(orderId, newStatus) {
             background: '#28a745',
             color: '#fff',
             iconColor: '#fff'
+        });
+    }
+}
+
+async function togglePaymentStatus(orderId, currentStatus) {
+    const newStatus = !currentStatus;
+
+    // Optimistic update
+    const idx = orders.findIndex(o => o.id === orderId);
+    if (idx > -1) {
+        orders[idx].is_paid = newStatus;
+        renderDashboard();
+    }
+
+    const { error } = await getSupabaseClient()
+        .from('orders')
+        .update({ is_paid: newStatus })
+        .eq('id', orderId);
+
+    if (error) {
+        console.error('Error updating payment status:', error);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo actualizar el pago.' });
+        await loadOrders();
+    } else {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: 'success',
+            title: newStatus ? 'Pedido Marcado como Pagado' : 'Pedido de nuevo Pendiente de Pago',
+            background: newStatus ? '#28a745' : '#dc3545',
+            color: '#fff'
         });
     }
 }
