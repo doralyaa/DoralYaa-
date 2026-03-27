@@ -138,10 +138,6 @@
         <!-- Orders Section -->
         <section id="orders-section" class="admin-section hidden">
             <div class="recent-orders">
-                <div class="section-header" style="justify-content: flex-end;">
-                    <button class="refresh-btn" onclick="loadOrders()"><i data-lucide="refresh-cw"></i> Actualizar</button>
-                </div>
-
                 <!-- Barra de Filtros Avanzados -->
                 <div class="admin-filters">
                     <div class="filter-group">
@@ -158,9 +154,14 @@
                             <option value="all">Cargando...</option>
                         </select>
                     </div>
-                    <button class="clear-filters-btn" onclick="clearFilters()">
-                        <i data-lucide="filter-x"></i> Limpiar
-                    </button>
+                    <div style="margin-left: auto; display: flex; gap: 10px;">
+                        <button class="refresh-btn" onclick="loadOrders()" style="background: var(--accent-blue); border: 1px solid #BEE3F8; color: #2B6CB0;">
+                            <i data-lucide="refresh-cw"></i> Actualizar
+                        </button>
+                        <button class="clear-filters-btn" onclick="clearFilters()">
+                            <i data-lucide="filter-x"></i> Limpiar
+                        </button>
+                    </div>
                 </div>
 
                 <div class="orders-table-container">
