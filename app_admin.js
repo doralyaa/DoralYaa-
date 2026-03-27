@@ -134,14 +134,14 @@ function updateStats() {
             if (filterMerchant !== 'all' && item.restaurantId.toString() !== filterMerchant) return sum;
             return sum + (Number(item.price) * Number(item.qty));
         }, 0);
-        
+
         // El envío se cuenta solo si la orden tiene items del comercio filtrado (o si es 'all')
         let deliveryCost = Number(o.total) - itemsList.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
         if (deliveryCost < 0) deliveryCost = 0;
 
         // DoralYaa Revenue (Comisión 15% productos + 25% envío)
         revenueToday += (itemCost * 0.15) + (deliveryCost * 0.25);
-        
+
         // Merchant Revenue (85% de sus productos)
         revenueMerchant += (itemCost * 0.85);
 
@@ -208,18 +208,18 @@ const restaurants = [
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg" },
     { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" },
     { id: 5, category: 'food', name: "Grill Arepas parrilla", image: "grill.jpg" },
-    { id: 6, category: 'food', name: "Classic Burger", image: "classic_burger.jpg" }
+    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg" }
 ];
 
 function populateMerchantFilters() {
     const dashSelect = document.getElementById('dash-filter-merchant');
     const orderSelect = document.getElementById('filter-merchant');
-    
+
     if (!dashSelect || !orderSelect) return;
 
     const options = restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
     const allOption = '<option value="all">Todos los comercios</option>';
-    
+
     dashSelect.innerHTML = allOption + options;
     orderSelect.innerHTML = allOption + options;
 }
@@ -240,7 +240,7 @@ function renderOrdersTable() {
         filtered = filtered.filter(o => {
             // Extraer solo la parte YYYY-MM-DD de la fecha de creación de Supabase
             const oDateStr = new Date(o.created_at).toISOString().split('T')[0];
-            
+
             if (filterStart && oDateStr < filterStart) return false;
             if (filterEnd && oDateStr > filterEnd) return false;
             return true;
@@ -267,7 +267,7 @@ function renderOrdersTable() {
         const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const items = order.items || [];
-        
+
         // Merchant(s) lookup
         const orderRestaurants = [];
         items.forEach(item => {
@@ -501,7 +501,7 @@ async function togglePaymentStatus(orderId, currentStatus) {
 async function checkAdminAuth() {
     // Comprobar si hay una sesión válida en Supabase (seguro e inviolable)
     const { data: { session } } = await getSupabaseClient().auth.getSession();
-    
+
     if (session) {
         // Ya está logueado correctamente
         await loadOrders();
@@ -538,7 +538,7 @@ async function checkAdminAuth() {
 
     if (formValues) {
         const [user, pass] = formValues;
-        
+
         Swal.fire({
             title: 'Autenticando...',
             allowOutsideClick: false,

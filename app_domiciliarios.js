@@ -149,7 +149,7 @@ function renderOrders() {
         list.innerHTML = available.map(o => {
             const items = Array.isArray(o.items) ? o.items : [];
             const restId = items.length > 0 ? items[0].restaurantId : null;
-            const rest = restaurants.find(r => r.id === restId) || { name: 'DoralYaa!', image: 'logo.png' };
+            const rest = restaurants.find(r => r.id === restId) || { name: 'DoralYaa!', image: 'logo.jpg' };
             
             return `
                 <div class="order-card">
@@ -184,7 +184,7 @@ function renderOrders() {
     // Renderizar Mi Pedido
     if (myOrder) {
         const items = myOrder.items || [];
-        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.png' };
+        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.jpg' };
         
         myOrderContainer.innerHTML = `
             <div class="assigned-card">
