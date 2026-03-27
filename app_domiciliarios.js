@@ -258,6 +258,12 @@ function renderOrders() {
                         <i data-lucide="check-circle"></i> ENTREGADO
                     </button>
                 </div>
+                
+                <div class="unassign-row">
+                    <button onclick="unassignOrder('${myOrder.id}')" class="unassign-link">
+                        <i data-lucide="rotate-ccw"></i> Desistir del pedido
+                    </button>
+                </div>
             </div>
         `;
     } else {
@@ -317,6 +323,40 @@ async function assignOrder(orderId) {
     }
 }
 
+async function unassignOrder(orderId) {
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Desistir del pedido?',
+        text: 'El pedido volverá a estar disponible para todos los domiciliarios.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Sí, liberar pedido',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (isConfirmed) {
+        // Mostrar cargando
+        Swal.fire({ title: 'Liberando pedido...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({ driver_name: null, status: 'pending' })
+            .eq('id', orderId);
+
+        if (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo liberar el pedido.' });
+        } else {
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Pedido Liberado', 
+                text: 'El pedido ahora está disponible de nuevo.', 
+                timer: 2000, 
+                showConfirmButton: false 
+            });
+        }
+    }
+}
+
 async function markAsDelivered(orderId) {
     const { isConfirmed } = await Swal.fire({
         title: '¿Pedido Entregado?',
@@ -342,6 +382,7 @@ async function markAsDelivered(orderId) {
 
 // Ventana global
 window.assignOrder = assignOrder;
+window.unassignOrder = unassignOrder;
 window.markAsDelivered = markAsDelivered;
 window.handleLogin = handleLogin;
 window.logout = logout;

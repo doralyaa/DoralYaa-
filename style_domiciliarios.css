@@ -387,3 +387,33 @@ body {
 
 .login-btn:hover { background: var(--primary-dark); }
 .login-btn:active { transform: scale(0.96); }
+.unassign-row {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
+
+.unassign-link {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.unassign-link:hover {
+    color: #FF5252;
+}
+
+.unassign-link i {
+    width: 14px;
+    height: 14px;
+    color: inherit !important;
+}
