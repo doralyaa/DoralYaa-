@@ -296,7 +296,10 @@ body {
 .refresh-btn:hover { background: #E2E8F0; }
 
 .orders-table-container {
-    overflow-x: auto;
+    overflow: auto;
+    max-height: calc(100vh - 360px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
 }
 
 .orders-table {
@@ -305,13 +308,17 @@ body {
     border-collapse: collapse;
 }
 
-.orders-table th {
+.orders-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--white);
     text-align: left;
     padding: 16px 24px;
     color: var(--text-muted);
     font-weight: 600;
     font-size: 14px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
 }
 
 .orders-table td {
