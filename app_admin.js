@@ -264,7 +264,9 @@ function renderOrdersTable() {
     noOrders.style.display = 'none';
 
     tbody.innerHTML = filtered.map(order => {
-        const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateObj = new Date(order.created_at);
+        const date = dateObj.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' });
+        const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const items = order.items || [];
 
@@ -301,7 +303,7 @@ function renderOrdersTable() {
 
         const customerInfo = order.customer_name ? `
             <div style="font-weight: 700; color: var(--navy); margin-bottom: 4px;">${order.customer_name}</div>
-            <div style="font-size: 13px; color: var(--text-muted);"><i data-lucide="map-pin" style="width: 14px; height: 14px; vertical-align: text-bottom;"></i> ${order.customer_address}</div>
+            <div style="font-size: 13px; color: var(--text-muted);"><i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: text-bottom;"></i> ${order.customer_address}</div>
         ` : `<span style="color: #999;">Anónimo</span>`;
 
         const notesHtml = order.notes ? `
@@ -312,8 +314,12 @@ function renderOrdersTable() {
 
         return `
             <tr>
-                <td style="color: var(--primary); font-weight: 700;">${order.id}</td>
-                <td style="color: var(--text-muted);">${time}</td>
+                <td>
+                    <div style="color: var(--primary); font-weight: 700; margin-bottom: 4px;">${order.id}</div>
+                    <div style="color: var(--text-muted); font-size: 12px; font-weight: 600;">
+                        <i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: text-bottom;"></i> ${date} - ${time}
+                    </div>
+                </td>
                 <td>${merchantsHtml}</td>
                 <td>${customerInfo}</td>
                 <td>
