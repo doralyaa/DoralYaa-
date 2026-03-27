@@ -1,7 +1,8 @@
 {
   "name": "DoralYaa!",
   "short_name": "DoralYaa!",
-  "start_url": "/index.html",
+  "description": "DoralYaa! - Tu marketplace de confianza",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#F4F7FE",
   "theme_color": "#F47920",
