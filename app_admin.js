@@ -330,6 +330,14 @@ function renderOrdersTable() {
                 </td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--navy);">
+                        ${order.driver_name ? `
+                            <i data-lucide="truck" style="width: 14px; height: 14px; vertical-align: text-bottom; color: var(--primary);"></i> 
+                            ${order.driver_name}
+                        ` : `<span style="color: #999; font-weight: 400;">Sin asignar</span>`}
+                    </div>
+                </td>
+                <td>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border); outline: none;">
                             <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendiente</option>
