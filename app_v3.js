@@ -9,7 +9,9 @@ function getSupabaseClient() {
     return _supabaseClient;
 }
 // ─────────────────────────────────────────────────────────────────────────────
-console.log('DoraYaa! app_v3.js v1.1 - Supabase ready');
+console.log('DoralYaa! app_v3.js v1.1 - Supabase ready');
+
+const DELIVERY_FEE = 6000;
 
 const translations = {
     es: {
@@ -26,7 +28,8 @@ const translations = {
         categories: {
             food: "Comida",
             pharmacy: "Farmacia",
-            supermarket: "Supermercado"
+            supermarket: "Supermercado",
+            licores: "Licores"
         },
         addToCart: "Añadir al Carrito",
         cartTitle: "Tu Pedido",
@@ -40,6 +43,13 @@ const translations = {
             orders: "Pedidos",
             profile: "Perfil",
             settings: "Configuración"
+        },
+        sectionTitles: {
+            all: "Comercios",
+            food: "Restaurantes",
+            pharmacy: "Farmacias",
+            supermarket: "Supermercados",
+            licores: "Licores"
         }
     },
     en: {
@@ -56,7 +66,8 @@ const translations = {
         categories: {
             food: "Food",
             pharmacy: "Pharmacy",
-            supermarket: "Supermarket"
+            supermarket: "Supermarket",
+            licores: "Liquors"
         },
         addToCart: "Add to Cart",
         cartTitle: "Your Order",
@@ -70,6 +81,13 @@ const translations = {
             orders: "Orders",
             profile: "Profile",
             settings: "Settings"
+        },
+        sectionTitles: {
+            all: "Businesses",
+            food: "Restaurants",
+            pharmacy: "Pharmacies",
+            supermarket: "Supermarkets",
+            licores: "Liquors"
         }
     }
 };
@@ -82,7 +100,9 @@ const restaurants = [
     { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
     { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573222737977", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
-    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
+    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
+    { id: 5, category: 'food', name: "Grill Arepas", image: "grill.png", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
+    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
 ];
 
 const products = [
@@ -94,12 +114,41 @@ const products = [
     { id: 7, restaurantId: 4, category: 'food', name: { es: "Tinto", en: "Black Coffee" }, description: { es: "Café negro tradicional colombiano.", en: "Traditional Colombian black coffee." }, price: 2000, image: "tinto.jpg", popular: false },
     { id: 8, restaurantId: 4, category: 'food', name: { es: "Café Mocca", en: "Mocha Coffee" }, description: { es: "Café con chocolate y leche.", en: "Coffee with chocolate and milk." }, price: 5000, image: "capuchino.png", popular: false },
     { id: 9, restaurantId: 4, category: 'food', name: { es: "Soda Michelada", en: "Michelada Soda" }, description: { es: "Refrescante soda michelada.", en: "Refreshing michelada soda." }, price: 10000, image: "michelada.jpg", popular: false, options: ["Frutos Rojos", "Frutos Amarillos", "Tamarindo"] },
-    { id: 12, restaurantId: 4, category: 'food', name: { es: "Sándwich", en: "Sandwich" }, description: { es: "Sándwich clásico para acompañar tu café.", en: "Classic sandwich to go with your coffee." }, price: 16000, image: "sandwich.jpg", popular: false }
+    { id: 12, restaurantId: 4, category: 'food', name: { es: "Sándwich", en: "Sandwich" }, description: { es: "Sándwich clásico para acompañar tu café.", en: "Classic sandwich to go with your coffee." }, price: 16000, image: "sandwich.jpg", popular: false },
+    { id: 15, restaurantId: 5, category: 'food', name: { es: "Jamón y Queso", en: "Ham & Cheese" }, price: 9600, image: "cat_food.png", popular: false },
+    { id: 16, restaurantId: 5, category: 'food', name: { es: "Con Queso", en: "With Cheese" }, price: 7800, image: "cat_food.png", popular: false },
+    { id: 17, restaurantId: 5, category: 'food', name: { es: "Chócolo", en: "Chócolo" }, description: { es: "Jamón y queso tipo mozzarella", en: "Ham and mozzarella cheese" }, price: 13200, image: "cat_food.png", popular: true },
+    { id: 18, restaurantId: 5, category: 'food', name: { es: "Arepa del Pueblo", en: "Arepa del Pueblo" }, description: { es: "Pollo, hogao, maicitos, cebolla grillé, maduritos y salsa dulce maíz", en: "Chicken, hogao, sweet corn, grilled onion, sweet plantain and sweet corn sauce" }, price: 15000, image: "cat_food.png", popular: true },
+    { id: 19, restaurantId: 5, category: 'food', name: { es: "Paisa", en: "Paisa" }, description: { es: "Frijol refrito, guacamole, chorizo, chicharrón y maicitos", en: "Refried beans, guacamole, chorizo, pork rinds and sweet corn" }, price: 21600, image: "grill_paisa.jpg", popular: true },
+    { id: 20, restaurantId: 5, category: 'food', name: { es: "Vegetariana", en: "Vegetarian Arepa" }, description: { es: "Queso tipo mozzarella, guacamole, pimentón, cebolla, maicitos y champiñones", en: "Mozzarella cheese, guacamole, bell pepper, onion, sweet corn and mushrooms" }, price: 17400, image: "cat_food.png", popular: false },
+    { id: 21, restaurantId: 5, category: 'food', name: { es: "Arepaburger", en: "Arepaburger" }, description: { es: "Carne de hamburguesa, jamón, tocineta y queso tipo mozzarella", en: "Burger meat, ham, bacon and mozzarella cheese" }, price: 22200, image: "cat_food.png", popular: false },
+    { id: 22, restaurantId: 5, category: 'food', name: { es: "Combinada", en: "Combined Arepa" }, description: { es: "Queso tipo mozzarella, carne de res, pollo, hogao", en: "Mozzarella cheese, beef, chicken, hogao" }, price: 22800, image: "cat_food.png", popular: false },
+    { id: 23, restaurantId: 5, category: 'food', name: { es: "Pollo y Champiñones", en: "Chicken & Mushrooms" }, description: { es: "Queso tipo mozzarella, pollo, champiñones y tocineta", en: "Mozzarella cheese, chicken, mushrooms and bacon" }, price: 19800, image: "cat_food.png", popular: false },
+    { id: 24, restaurantId: 5, category: 'food', name: { es: "Doña Lucía", en: "Doña Lucía" }, description: { es: "Jamón, queso tipo mozzarella, carne de cerdo, cebolla y maicitos", en: "Ham, mozzarella cheese, pork, onion and sweet corn" }, price: 21000, image: "cat_food.png", popular: false },
+    { id: 25, restaurantId: 5, category: 'food', name: { es: "Mexicana", en: "Mexican Arepa" }, description: { es: "Frijol refrito, guacamole, carne de res, pico de gallo y picante", en: "Refried beans, guacamole, beef, pico de gallo and spicy sauce" }, price: 26400, image: "cat_food.png", popular: false },
+    { id: 26, restaurantId: 5, category: 'food', name: { es: "Antioqueña", en: "Antioqueña" }, description: { es: "Queso tipo mozzarella, frijol refrito, guacamole, carne, hogao, chorizo, maduro y aguacate", en: "Mozzarella cheese, refried beans, guacamole, meat, hogao, chorizo, sweet plantain and avocado" }, price: 28800, image: "cat_food.png", popular: false },
+    { id: 27, restaurantId: 5, category: 'food', name: { es: "Super Arepa", en: "Super Arepa" }, description: { es: "Pollo, carne, chicharrón, maicitos, tocineta, hogao, salsa BBQ y queso tipo mozzarella", en: "Chicken, meat, pork rinds, sweet corn, bacon, hogao, BBQ sauce and mozzarella cheese" }, price: 34800, image: "cat_food.png", popular: true },
+    { id: 28, restaurantId: 6, category: 'food', name: { es: "Patacón Burger", en: "Patacón Burger" }, description: { es: "2 patacones, carne artesanal, queso mozzarella, tocineta, cebolla caramelizada, lechuga, tomate y salsa de la casa.", en: "2 patacones, artisan meat, mozzarella cheese, bacon, caramelized onion, lettuce, tomato and house sauce." }, price: 31800, image: "classic_pataconb.jpeg", popular: true, options: ["Con Papas (+ $7.200)"] },
+    { id: 29, restaurantId: 6, category: 'food', name: { es: "Buenos Aires Burger", en: "Buenos Aires Burger" }, description: { es: "Pan artesanal, carne artesanal, queso gratinado, chorizo argentino asado, chimichurri, lechuga, tomate y salsa de la casa.", en: "Artisan bread, artisan meat, grilled cheese, grilled Argentine chorizo, chimichurri, lettuce, tomato and house sauce." }, price: 39000, image: "classic_classic.jpeg", popular: true, options: ["Con Papas (+ $7.200)"] },
+    { id: 30, restaurantId: 6, category: 'food', name: { es: "La Classic", en: "La Classic" }, description: { es: "Pan artesanal, 160 gr de carne artesanal al carbón, queso gratinado, tocineta caramelizada, lechuga, salsa de la casa.", en: "Artisan bread, 160g charcoal artisan meat, grilled cheese, caramelized bacon, lettuce, house sauce." }, price: 31200, image: "classic_classic.jpeg", popular: true, options: ["Con Papas (+ $7.200)"] },
+    { id: 31, restaurantId: 6, category: 'food', name: { es: "Arepa Burger", en: "Arepa Burger" }, description: { es: "Arepa paisa, carne queso chicharrón de pollo apanada, queso calta coleslaw, lechuga, tomato y salsa de la casa.", en: "Arepa paisa, meat, breaded chicken rind cheese, coleslaw, lettuce, tomato and house sauce." }, price: 27600, image: "classic_arepab.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 32, restaurantId: 6, category: 'food', name: { es: "Sweet Classic", en: "Sweet Classic" }, description: { es: "Pan artesanal, 150 gr de carne artesanal al carbón, queso gratinado, tocineta caramelizada, cebolla, puerro y salsa de la casa.", en: "Artisan bread, 150g charcoal artisan meat, grilled cheese, caramelized bacon, onion, leek and house sauce." }, price: 37200, image: "classic_sweet.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 33, restaurantId: 6, category: 'food', name: { es: "Grill Paisa", en: "Grill Paisa" }, description: { es: "Deliciosa burger en maduro artesanal, gratinada, con guacamole, plátano maduro, vegetales frescos y salsa la casa.", en: "Delicious burger in artisan sweet plantain, grilled with guacamole, sweet plantain, fresh vegetables and house sauce." }, price: 31800, image: "classic_classic.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 34, restaurantId: 6, category: 'food', name: { es: "Paradise Burger", en: "Paradise Burger" }, description: { es: "Pan brioche con ajonjolí, carne artesanal, queso costeño frito, tomates cherry caramelizada, lechuga y salsa de la casa.", en: "Sesame brioche bread, artisan meat, fried coastal cheese, caramelized cherry tomatoes, lettuce and house sauce." }, price: 34800, image: "classic_paradise.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 35, restaurantId: 6, category: 'food', name: { es: "Hawaí Burger", en: "Hawaí Burger" }, description: { es: "Pan brioche con ajonjolí, carne artesanal, queso asada, cebollas encurtidas, tomate, lechuga y salsa de la casa.", en: "Sesame brioche bread, artisan meat, grilled cheese, pickled onions, tomato, lettuce and house sauce." }, price: 33600, image: "classic_classic.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 36, restaurantId: 6, category: 'food', name: { es: "Burger Crunch Chicken", en: "Burger Crunch Chicken" }, description: { es: "Pan de parmesano y orégano, pechuga de pollo apanada, queso gratinado BBQ, lechuga, tomate y salsa de la casa.", en: "Parmesan and oregano bread, breaded chicken breast, BBQ grilled cheese, lettuce, tomato and house sauce." }, price: 30000, image: "classic_crunch.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 37, restaurantId: 6, category: 'food', name: { es: "Pork Burger", en: "Pork Burger" }, description: { es: "Pan artesanal, 110 grs de chicharrón con salsa acevichada, queso mozzarella, vegetales y salsa de la casa.", en: "Artisan bread, 110g pork rinds with acevichada sauce, mozzarella cheese, vegetables and house sauce." }, price: 37800, image: "classic_pork.jpeg", popular: false, options: ["Con Papas (+ $7.200)"] },
+    { id: 38, restaurantId: 6, category: 'food', name: { es: "Hoops Onion Burger", en: "Hoops Onion Burger" }, description: { es: "Pan de parmesano y orégano, carne 100% artesanal, salsa de la casa, muzzarella gratinado y cebolla apanatos, tocineta caramelizada, lechuga crespa y tomate.", en: "Parmesan and oregano bread, 100% artisan meat, house sauce, grilled mozzarella and breaded onion, caramelized bacon, curly lettuce and tomato." }, price: 43200, image: "classic_hoops.jpeg", popular: true, options: ["Con Papas (+ $7.200)"] },
+    { id: 39, restaurantId: 6, category: 'food', name: { es: "Burger Loving", en: "Burger Loving" }, description: { es: "Pan de parmesano y orégano, carne 100% artesanal, salsa de la casa, queso philadelphia, topping de mermelada, albahaca morada.", en: "Parmesan and oregano bread, 100% artisan meat, house sauce, Philadelphia cheese, jam topping, purple basil." }, price: 37200, image: "classic_loving.jpeg", popular: true, options: ["Con Papas (+ $7.200)"] }
 ];
 
 let currentLang = 'es';
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('doraCart')) || [];
 let currentCategory = 'all';
+
+function saveCart() {
+    localStorage.setItem('doraCart', JSON.stringify(cart));
+}
 let currentRestaurantId = null;
 
 // Modal state
@@ -135,6 +184,7 @@ function updateUI() {
     document.getElementById('greet-text').innerText = t[greetKey];
     document.getElementById('subgreet-text').innerText = t.subgreet;
     document.getElementById('search-input').placeholder = t.searchPlaceholder;
+    if (document.getElementById('cart-delivery')) document.getElementById('cart-delivery').innerText = formatPrice(DELIVERY_FEE);
     if (document.getElementById('banner-tag')) document.getElementById('banner-tag').innerText = t.bannerTag;
     if (document.getElementById('banner-title')) document.getElementById('banner-title').innerText = t.bannerTitle;
     if (document.getElementById('cat-title')) document.getElementById('cat-title').innerText = t.catTitle;
@@ -174,7 +224,8 @@ function renderCategories() {
     const cats = [
         { id: 'food', icon: '🍔', name: translations[currentLang].categories.food },
         { id: 'pharmacy', icon: '💊', name: translations[currentLang].categories.pharmacy },
-        { id: 'supermarket', icon: '🛒', name: translations[currentLang].categories.supermarket }
+        { id: 'supermarket', icon: '🛒', name: translations[currentLang].categories.supermarket },
+        { id: 'licores', icon: '🍾', name: translations[currentLang].categories.licores }
     ];
     container.innerHTML = cats.map(cat => `
         <div class="category-card ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">
@@ -193,7 +244,14 @@ function filterCategory(catId) {
 
 function renderRestaurants() {
     const grid = document.getElementById('restaurant-grid');
+    const titleEl = document.getElementById('rests-title');
     if (!grid) return;
+
+    if (titleEl) {
+        const sectionTitles = translations[currentLang].sectionTitles;
+        titleEl.innerText = sectionTitles[currentCategory] || sectionTitles['all'];
+    }
+
     const filtered = currentCategory === 'all' ? restaurants : restaurants.filter(r => r.category === currentCategory);
     grid.innerHTML = filtered.map(r => `
         <div class="restaurant-card" onclick="showRestaurantProducts(${r.id})">
@@ -246,6 +304,7 @@ function renderPopularProducts() {
                 <div class="popular-card-info">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 8px;">#Destacado</span>
                     <h3>${p.name[currentLang]}</h3>
+                    ${p.description ? `<p style="font-size: 12px; margin: 4px 0 8px 0; opacity: 0.9; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description[currentLang]}</p>` : ''}
                     <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
                         <span style="font-weight: 800; font-size: 18px;">${formatPrice(p.price)}</span>
                         <div style="font-size: 12px; font-weight: 600; background: white; color: var(--primary); padding: 6px 12px; border-radius: 12px;">Pedir</div>
@@ -284,6 +343,15 @@ function openOptionsModal(productId, qty) {
     // reset qty text
     const qtyEl = document.getElementById('options-modal-qty');
     if (qtyEl) qtyEl.innerText = selectedOptionsQty;
+
+    const imgEl = document.getElementById('options-modal-img');
+    if (imgEl && product.image) {
+        imgEl.src = product.image;
+        imgEl.alt = product.name[currentLang];
+        imgEl.style.display = 'block';
+    } else if (imgEl) {
+        imgEl.style.display = 'none';
+    }
 
     const descEl = document.getElementById('options-modal-desc');
     if (product.description) {
@@ -346,6 +414,7 @@ function addItemToCart(product, qty, option) {
         cart.push({ ...product, qty, option, cartId });
     }
 
+    saveCart();
     updateCartCount();
     // SweetAlert2 Toast for adding to cart
     const Toast = Swal.mixin({
@@ -426,7 +495,8 @@ function renderProducts() {
             </div>
             <div class="product-info" onclick="openProductDetails(${p.id}, 1)" style="cursor: pointer;">
                 <h3>${p.name[currentLang]}</h3>
-                <p>${formatPrice(p.price)}</p>
+                ${p.description ? `<p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description[currentLang]}</p>` : ''}
+                <p style="color: var(--primary); font-weight: 800;">${formatPrice(p.price)}</p>
             </div>
             <div class="product-controls">
                 <button class="control-btn" onclick="updateQty(this, -1)">-</button>
@@ -507,6 +577,7 @@ function renderCartItems() {
 
 function removeFromCart(cartId) {
     cart = cart.filter(item => item.cartId !== cartId);
+    saveCart();
     renderCartItems();
     updateCartCount();
     renderProducts();
@@ -516,15 +587,15 @@ function updateTotals() {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const envio = cart.length > 0 ? 6000 : 0;
     const total = subtotal + envio;
-    
+
     document.getElementById('cart-subtotal').innerText = formatPrice(subtotal);
-    
+
     // Si metimos al DOM la nueva fila (como ya hicimos en index.html)
     const cartDelivery = document.getElementById('cart-delivery');
     if (cartDelivery) {
         cartDelivery.innerText = formatPrice(envio);
         cartDelivery.parentElement.style.display = cart.length > 0 ? 'flex' : 'none';
-        
+
         // Configurar los rotulos para multi-idioma
         cartDelivery.previousElementSibling.innerText = currentLang === 'es' ? 'Envío (Tarifa Fija)' : 'Delivery Fee (Fixed)';
     }
@@ -578,8 +649,8 @@ async function submitOrder() {
             sendBtn.innerText = currentLang === 'es' ? 'Enviando...' : 'Sending...';
         }
 
-        // Calculate subtotal and then add fixed 6000 delivery fee
-        const orderTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0) + 6000;
+        // Calculate subtotal and then add fixed delivery fee
+        const orderTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0) + DELIVERY_FEE;
 
         // Save to Supabase (cross-device, real-time)
         const { error } = await getSupabaseClient().from('orders').insert([{
@@ -616,7 +687,7 @@ async function submitOrder() {
 
             await fetch('https://pentarchical-knuckly-tenley.ngrok-free.dev/api/send-order', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'ngrok-skip-browser-warning': 'true' // Salta la pantalla de advertencia gratuita de Ngrok
                 },
@@ -626,7 +697,7 @@ async function submitOrder() {
                     restauranteNumero: numRestaurante,
                     qrUrl: qrPagar,
                     totalPedido: formatPrice(orderTotal),
-                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal a pagar: ${formatPrice(orderTotal)} (incluye $6.000 envío)\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
+                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal a pagar: ${formatPrice(orderTotal)} (incluye ${formatPrice(DELIVERY_FEE)} envío)\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
                 })
             });
         } catch (botErr) {
@@ -636,6 +707,7 @@ async function submitOrder() {
 
         // Reset Cart and Form
         cart = [];
+        saveCart();
         document.getElementById('customer-name').value = '';
         document.getElementById('customer-address').value = '';
         document.getElementById('customer-phone').value = '';
@@ -723,10 +795,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (popularTitle) popularTitle.parentElement.style.display = 'block';
                 if (catContainer) catContainer.style.display = 'flex';
                 if (catTitle) catTitle.parentElement.style.display = 'flex';
-                
+
                 if (restsHeader) restsHeader.style.display = 'flex';
                 if (restsTitle) restsTitle.innerText = translations[currentLang].rests;
-                
+
                 productsGrid.style.display = 'none';
                 productsHeader.style.display = 'none';
                 currentRestaurantId = null;
@@ -738,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (popularTitle) popularTitle.parentElement.style.display = 'none';
             if (catContainer) catContainer.style.display = 'none';
             if (catTitle) catTitle.parentElement.style.display = 'none';
-            
+
             // Ocultar grilla de productos si estaba abierta
             productsGrid.style.display = 'none';
             productsHeader.style.display = 'none';
@@ -767,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pNameEs = p.name.es ? p.name.es.toLowerCase() : '';
                 const pNameEn = p.name.en ? p.name.en.toLowerCase() : '';
                 const pDescEs = (p.description && p.description.es) ? p.description.es.toLowerCase() : '';
-                
+
                 if (pNameEs.includes(query) || pNameEn.includes(query) || pDescEs.includes(query)) {
                     matchedRestaurants.add(p.restaurantId);
                 }
@@ -775,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Filtrar y renderizar restaurantes
             const filteredRests = restaurants.filter(r => matchedRestaurants.has(r.id));
-            
+
             restaurantGrid.innerHTML = filteredRests.length > 0 ? filteredRests.map(r => `
                 <div class="restaurant-card" onclick="showRestaurantProducts(${r.id})">
                     <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">

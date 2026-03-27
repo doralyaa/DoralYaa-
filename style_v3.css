@@ -120,8 +120,8 @@ header {
 }
 
 .mini-logo {
-    width: 44px;
-    height: 44px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -555,4 +555,14 @@ header {
     justify-content: center;
     gap: 8px;
     box-shadow: 0 4px 12px rgba(244, 121, 32, 0.3);
+}
+
+.options-modal-img {
+    width: 100%;
+    height: 200px;
+    border-radius: 20px;
+    object-fit: cover;
+    display: none;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }

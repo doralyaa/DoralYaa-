@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoraYaa! Admin Dashboard</title>
+    <title>DoralYaa! Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
 <body>
     <aside class="sidebar-admin" id="admin-sidebar">
         <div class="brand">
-            <img src="logo.png" alt="DoraYaa Logo" class="logo">
-            <h2>DoraYaa! Admin</h2>
+            <img src="logo.png" alt="DoralYaa Logo" class="logo">
+            <h2>DoralYaa! Admin</h2>
         </div>
         <nav class="nav-menu">
             <button class="nav-link active" id="nav-dashboard" onclick="showSection('dashboard')">
@@ -71,11 +71,7 @@
                 <div class="filter-group">
                     <label>Comercio:</label>
                     <select id="dash-filter-merchant" onchange="renderDashboard()">
-                        <option value="all">Todos los comercios</option>
-                        <option value="1">Burger Gourmet</option>
-                        <option value="2">Farmacia San José</option>
-                        <option value="3">Supermercado Rindemax</option>
-                        <option value="4">Greegory's Coffee</option>
+                        <option value="all">Cargando comercios...</option>
                     </select>
                 </div>
                 <button class="clear-filters-btn" onclick="clearDashFilters()">
@@ -95,13 +91,13 @@
                     </div>
                 </div>
 
-                <!-- Columna 2: Ingresos DoraYaa -->
+                <!-- Columna 2: Ingresos DoralYaa -->
                 <div class="stat-card" style="border-left: 4px solid var(--primary);">
                     <div class="stat-icon" style="background: var(--accent-green); color: #2E7D32;">
                         <i data-lucide="award"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Ingresos DoraYaa</h3>
+                        <h3>Ingresos DoralYaa</h3>
                         <p id="stat-revenue-today">$0</p>
                     </div>
                 </div>
@@ -161,11 +157,7 @@
                     <div class="filter-group">
                         <label>Comercio:</label>
                         <select id="filter-merchant" onchange="renderDashboard()">
-                            <option value="all">Todos los comercios</option>
-                            <option value="1">Burger Gourmet</option>
-                            <option value="2">Farmacia San José</option>
-                            <option value="3">Supermercado Rindemax</option>
-                            <option value="4">Greegory's Coffee</option>
+                            <option value="all">Cargando...</option>
                         </select>
                     </div>
                     <button class="clear-filters-btn" onclick="clearFilters()">

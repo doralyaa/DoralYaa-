@@ -34,7 +34,7 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    console.log('🤖 ESCANEA ESTE CÓDIGO QR CON EL WHATSAPP DEL BOT (DoraYaa)');
+    console.log('🤖 ESCANEA ESTE CÓDIGO QR CON EL WHATSAPP DEL BOT (DoralYaa)');
     qrcode.generate(qr, { small: true });
 });
 
@@ -160,7 +160,7 @@ app.post('/api/send-order', async (req, res) => {
             status: 'esperando_respuesta_restaurante'
         };
 
-        let msgRestaurante = `🛎️ ¡Nueva orden de DoraYaa (#${finalOrderId})!\n\n`;
+        let msgRestaurante = `🛎️ ¡Nueva orden de DoralYaa (#${finalOrderId})!\n\n`;
         msgRestaurante += `Detalles:\n${detallesPedido}\n\n`;
         msgRestaurante += `¿Puedes preparar esta orden?\nResponde "SI" o "NO".`;
 

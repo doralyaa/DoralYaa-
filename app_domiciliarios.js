@@ -7,8 +7,15 @@ const restaurants = [
     { id: 1, name: "Burger Gourmet", image: "cat_food.png" },
     { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png" },
     { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg" },
-    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg" }
+    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg" },
+    { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg" },
+    { id: 6, name: "Classic Burger", image: "classic_burger.jpg" }
 ];
+
+const DELIVERY_CONFIG = {
+    fee: 6000,
+    driverShare: 0.75
+};
 
 let allOrders = [];
 let myDriverName = localStorage.getItem('domiciliario_name') || null;
@@ -142,13 +149,13 @@ function renderOrders() {
         list.innerHTML = available.map(o => {
             const items = Array.isArray(o.items) ? o.items : [];
             const restId = items.length > 0 ? items[0].restaurantId : null;
-            const rest = restaurants.find(r => r.id === restId) || { name: 'DoraYaa!', image: 'logo.png' };
+            const rest = restaurants.find(r => r.id === restId) || { name: 'DoralYaa!', image: 'logo.png' };
             
             return `
                 <div class="order-card">
                     <div class="order-header">
                         <span class="order-id">#${o.id}</span>
-                        <span class="order-price">${formatPrice(4500)}</span>
+                        <span class="order-price">${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
                     </div>
                     <div class="order-body">
                         <div class="info-item">
@@ -177,13 +184,13 @@ function renderOrders() {
     // Renderizar Mi Pedido
     if (myOrder) {
         const items = myOrder.items || [];
-        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoraYaa!', image: 'logo.png' };
+        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.png' };
         
         myOrderContainer.innerHTML = `
             <div class="assigned-card">
                 <div class="order-header">
                     <span class="order-id">#${myOrder.id}</span>
-                    <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(4500)}</span>
+                    <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
                 </div>
                 <div class="order-body">
                     <div class="info-item">

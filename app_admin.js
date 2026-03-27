@@ -9,16 +9,18 @@ function getSupabaseClient() {
     return _supabaseClient;
 }
 // ─────────────────────────────────────────────────────────────────────────────
-console.log('DoraYaa! app_admin.js v1.1 - Supabase ready');
+console.log('DoralYaa! app_admin.js v1.1 - Supabase ready');
 
 let orders = [];
 
 // Phone mapping for restaurants
 const RESTAURANT_PHONES = {
-    1: "573000000000", // Burger Gourmet
-    2: "573000000001", // Farmacia
-    3: "573000000002", // Supermercado
-    4: "573127922967"  // Greegory's Coffee
+    1: "573222737975", // Burger Gourmet
+    2: "573222737976", // Farmacia
+    3: "573222737977", // Supermercado
+    4: "573127922967", // Greegory's Coffee
+    5: "573222737975", // Grill Arepas Parrilla
+    6: "573222737975"  // Classic Burger
 };
 
 function formatPrice(price) {
@@ -137,7 +139,7 @@ function updateStats() {
         let deliveryCost = Number(o.total) - itemsList.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
         if (deliveryCost < 0) deliveryCost = 0;
 
-        // DoraYaa Revenue (Comisión 15% productos + 25% envío)
+        // DoralYaa Revenue (Comisión 15% productos + 25% envío)
         revenueToday += (itemCost * 0.15) + (deliveryCost * 0.25);
         
         // Merchant Revenue (85% de sus productos)
@@ -191,7 +193,7 @@ function generateWhatsAppLinks(order) {
         let cPhone = order.customer_phone.replace(/[\s\+\-]/g, '');
         if (cPhone.length === 10) cPhone = '57' + cPhone;
 
-        const customerMsg = encodeURIComponent(`Hola ${order.customer_name},\n\nSomos de DoraYaa. Tu pedido ${order.id} ha sido registrado. `);
+        const customerMsg = encodeURIComponent(`Hola ${order.customer_name},\n\nSomos de DoralYaa. Tu pedido ${order.id} ha sido registrado. `);
         linksHtml += `<a href="https://wa.me/${cPhone}?text=${customerMsg}" target="_blank" style="display:inline-flex; align-items:center; gap:4px; padding: 6px 10px; background: #E3F2FD; color: #1565C0; border-radius: 6px; text-decoration: none; font-size: 13px; margin-top: 6px; border: none; font-weight: 600;" title="Enviar a Cliente">
             <i data-lucide="user" style="width: 14px; height: 14px;"></i> WS Cliente
         </a> `;
@@ -204,8 +206,23 @@ const restaurants = [
     { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png" },
     { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg" },
-    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" }
+    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" },
+    { id: 5, category: 'food', name: "Grill Arepas parrilla", image: "grill.jpg" },
+    { id: 6, category: 'food', name: "Classic Burger", image: "classic_burger.jpg" }
 ];
+
+function populateMerchantFilters() {
+    const dashSelect = document.getElementById('dash-filter-merchant');
+    const orderSelect = document.getElementById('filter-merchant');
+    
+    if (!dashSelect || !orderSelect) return;
+
+    const options = restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+    const allOption = '<option value="all">Todos los comercios</option>';
+    
+    dashSelect.innerHTML = allOption + options;
+    orderSelect.innerHTML = allOption + options;
+}
 
 function renderOrdersTable() {
     const tbody = document.getElementById('orders-body');
@@ -265,7 +282,7 @@ function renderOrdersTable() {
                 <img src="${r.image}" alt="${r.name}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
                 <span style="font-size: 13px; font-weight: 700; color: var(--navy);">${r.name}</span>
             </div>
-        `).join('') || '<span style="color: #999; font-size: 12px;">DoraYaa!</span>';
+        `).join('') || '<span style="color: #999; font-size: 12px;">DoralYaa!</span>';
 
         let itemsStr = items.map(i => {
             const optStr = i.option ? ` <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">(${i.option})</span>` : '';
@@ -544,6 +561,7 @@ async function checkAdminAuth() {
         } else {
             // Login exitoso, cerrar el Swal de loading y cargar datos
             Swal.close();
+            populateMerchantFilters();
             await loadOrders();
             subscribeToOrders();
         }
