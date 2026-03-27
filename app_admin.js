@@ -328,11 +328,11 @@ function renderOrdersTable() {
                         ${order.is_paid ? 'Pagado' : 'No Pagado'}
                     </span>
                 </td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
-                    <div style="font-size: 13px; font-weight: 700; color: var(--navy);">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <div style="margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--navy);">
                         ${order.driver_name ? `
-                            <i data-lucide="truck" style="width: 14px; height: 14px; vertical-align: text-bottom; color: var(--primary);"></i> 
+                            <i data-lucide="truck" style="width: 12px; height: 12px; vertical-align: text-bottom; color: var(--primary);"></i> 
                             ${order.driver_name}
                         ` : `<span style="color: #999; font-weight: 400;">Sin asignar</span>`}
                     </div>
