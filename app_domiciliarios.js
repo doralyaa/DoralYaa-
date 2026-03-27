@@ -18,6 +18,7 @@ const DELIVERY_CONFIG = {
 };
 
 let allOrders = [];
+let myDriverId = localStorage.getItem('domiciliario_id') || null;
 let myDriverName = localStorage.getItem('domiciliario_name') || null;
 
 function formatPrice(price) {
@@ -27,20 +28,16 @@ function formatPrice(price) {
 // ─── Inicialización ────────────────────────────────────────────────────────
 async function init() {
     console.log("[INIT] Iniciando aplicación de domiciliarios...");
-    updateDriverDisplay();
     
-    // Probar conexión a Supabase
-    try {
-        const { data, error } = await supabaseClient.from('orders').select('count', { count: 'exact', head: true });
-        if (error) throw error;
-        console.log("[INIT] Conexión a Supabase exitosa.");
-    } catch (e) {
-        console.error("[INIT] ERROR DE CONEXIÓN:", e);
-        Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'No se pudo conectar con Supabase. Revisa tu conexión.' });
+    if (!myDriverId) {
+        document.getElementById('login-overlay').style.display = 'flex';
+    } else {
+        document.getElementById('login-overlay').style.display = 'none';
+        updateDriverDisplay();
+        await loadAvailableOrders();
+        subscribeToChanges();
     }
 
-    await loadAvailableOrders();
-    subscribeToChanges();
     if (window.lucide) lucide.createIcons();
 }
 
@@ -55,24 +52,54 @@ function updateDriverDisplay() {
     }
 }
 
-async function changeDriver() {
-    const { value: name } = await Swal.fire({
-        title: 'Tu Nombre',
-        input: 'text',
-        inputLabel: 'Ingresa tu nombre para identificarte',
-        inputValue: myDriverName || '',
-        showCancelButton: true,
-        inputValidator: (value) => {
-            if (!value) return '¡Necesitas un nombre!';
-        }
-    });
+async function handleLogin() {
+    const phone = document.getElementById('login-phone').value.trim();
+    const idNumber = document.getElementById('login-id').value.trim();
 
-    if (name) {
-        myDriverName = name;
-        localStorage.setItem('domiciliario_name', name);
-        updateDriverDisplay();
-        renderOrders();
+    if (!phone || !idNumber) {
+        Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor ingresa tu número y cédula.' });
+        return;
     }
+
+    // Loader
+    Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('drivers')
+            .select('*')
+            .eq('phone', phone)
+            .eq('id_number', idNumber)
+            .single();
+
+        if (error || !data) {
+            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales incorrectas o no estás registrado.' });
+            return;
+        }
+
+        // Éxito
+        myDriverId = data.id;
+        myDriverName = data.name;
+        localStorage.setItem('domiciliario_id', data.id);
+        localStorage.setItem('domiciliario_name', data.name);
+
+        Swal.fire({ icon: 'success', title: `¡Bienvenido ${data.name}!`, timer: 1500, showConfirmButton: false });
+        
+        document.getElementById('login-overlay').style.display = 'none';
+        updateDriverDisplay();
+        await loadAvailableOrders();
+        subscribeToChanges();
+
+    } catch (err) {
+        console.error("Error en login:", err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un problema al iniciar sesión.' });
+    }
+}
+
+function logout() {
+    localStorage.removeItem('domiciliario_id');
+    localStorage.removeItem('domiciliario_name');
+    location.reload();
 }
 
 // ─── Carga de Datos ────────────────────────────────────────────────────────
@@ -316,7 +343,8 @@ async function markAsDelivered(orderId) {
 // Ventana global
 window.assignOrder = assignOrder;
 window.markAsDelivered = markAsDelivered;
-window.changeDriver = changeDriver;
+window.handleLogin = handleLogin;
+window.logout = logout;
 
 // Iniciar
 init();

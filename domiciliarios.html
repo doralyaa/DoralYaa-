@@ -12,6 +12,26 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
+    <!-- Pantalla de Login -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <img src="logo.jpg" alt="Logo" class="logo-login">
+            <h2>Panel de Control</h2>
+            <p>Acceso exclusivo para domiciliarios registrados.</p>
+            <div class="login-form">
+                <div class="form-group">
+                    <label>Número de Celular</label>
+                    <input type="tel" id="login-phone" placeholder="Ej: 3222737975">
+                </div>
+                <div class="form-group">
+                    <label>Cédula (Contraseña)</label>
+                    <input type="password" id="login-id" placeholder="Ingresa tu ID">
+                </div>
+                <button class="login-btn" onclick="handleLogin()">Iniciar Sesión</button>
+            </div>
+        </div>
+    </div>
+
     <header class="driver-header">
         <div class="header-content">
             <img src="logo.jpg" alt="DoralYaa Logo" class="logo">
@@ -20,7 +40,7 @@
         <div class="driver-info" id="driver-display" style="display: none;">
             <i data-lucide="user"></i>
             <span id="current-driver-name">Repartidor</span>
-            <button onclick="changeDriver()">Cambiar</button>
+            <button onclick="logout()">Salir</button>
         </div>
     </header>
 
