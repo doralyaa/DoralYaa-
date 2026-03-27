@@ -303,7 +303,7 @@ function renderOrdersTable() {
 
         const customerInfo = order.customer_name ? `
             <div style="font-weight: 700; color: var(--navy); margin-bottom: 4px;">${order.customer_name}</div>
-            <div style="font-size: 13px; color: var(--text-muted);"><i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: text-bottom;"></i> ${order.customer_address}</div>
+            <div style="font-size: 13px; color: var(--text-muted);"><i data-lucide="map-pin" style="width: 14px; height: 14px; vertical-align: text-bottom;"></i> ${order.customer_address}</div>
         ` : `<span style="color: #999;">Anónimo</span>`;
 
         const notesHtml = order.notes ? `
