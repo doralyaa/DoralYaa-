@@ -97,8 +97,8 @@ function formatPrice(price) {
 }
 
 const restaurants = [
-    { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
-    { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
+    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
+    { id: 2, category: 'pharmacy', name: "Farmacia", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573222737977", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
     { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
     { id: 5, category: 'food', name: "Grill Arepas", image: "grill.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
@@ -271,7 +271,11 @@ function showRestaurantProducts(restId) {
     document.getElementById('rests-header').style.display = 'none';
     document.getElementById('product-grid').style.display = 'grid';
     document.getElementById('restaurant-products-header').style.display = 'flex';
-    document.getElementById('prod-title').innerText = rest ? rest.name : '';
+    if (rest) {
+        document.getElementById('prod-title').innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><img src="${rest.image}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain; background: var(--accent-orange);" alt=""><span>${rest.name}</span></div>`;
+    } else {
+        document.getElementById('prod-title').innerText = '';
+    }
     renderProducts();
 }
 
