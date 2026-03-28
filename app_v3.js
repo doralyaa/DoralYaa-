@@ -366,13 +366,19 @@ function openOptionsModal(productId, qty) {
         optsContainer.innerHTML = '';
         product.optionGroups.forEach((group, gIdx) => {
             const groupName = group.name[currentLang] || group.name;
-            optsContainer.innerHTML += `<p style="font-weight: 600; font-size: 14px; margin-top: 10px; margin-bottom: 4px;">${groupName}:</p>`;
-            optsContainer.innerHTML += group.options.map((opt, i) => `
+            const isHorizontal = groupName.toLowerCase() === "temperatura" || groupName.toLowerCase() === "temperature";
+            const wrapperStyle = isHorizontal ? "display: flex; flex-direction: row; gap: 24px; flex-wrap: wrap;" : "display: flex; flex-direction: column; gap: 8px;";
+            
+            optsContainer.innerHTML += `<p style="font-weight: 600; font-size: 14px; margin-top: 10px; margin-bottom: 8px;">${groupName}:</p>`;
+            
+            const optionsHtml = group.options.map((opt, i) => `
                 <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
                     <input type="radio" name="product-option-${gIdx}" value="${opt}" ${i === 0 ? 'checked' : ''}>
                     ${opt}
                 </label>
             `).join('');
+            
+            optsContainer.innerHTML += `<div style="${wrapperStyle}">${optionsHtml}</div>`;
         });
     } else if (product.options && product.options.length > 0) {
         optsContainer.innerHTML = `<p style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Elige una opción:</p>`;
