@@ -110,7 +110,7 @@ const products = [
     { id: 2, restaurantId: 2, category: 'pharmacy', name: { es: "Kit Primeros Auxilios", en: "First Aid Kit" }, price: 25500, image: "cat_pharmacy.png", popular: false },
     { id: 3, restaurantId: 3, category: 'supermarket', name: { es: "Canasta de Desayuno", en: "Breakfast Basket" }, price: 18000, image: "cat_supermarket.png", popular: true },
     { id: 4, restaurantId: 1, category: 'food', name: { es: "Pizza Artesanal", en: "Artisan Pizza" }, price: 15000, image: "cat_food.png", popular: true },
-    { id: 5, restaurantId: 4, category: 'food', name: { es: "Capuchino", en: "Cappuccino" }, description: { es: "Delicioso café expreso con leche espumada.", en: "Delicious espresso with frothy milk." }, price: 7000, image: "capuchino.png", popular: true, options: ["7 onzas - Caliente", "7 onzas - Frío", "9 onzas - Caliente (+ $2.000)", "9 onzas - Frío (+ $2.000)", "12 onzas - Caliente (+ $5.000)", "12 onzas - Frío (+ $5.000)", "14 onzas - Caliente (+ $7.000)", "14 onzas - Frío (+ $7.000)", "16 onzas - Caliente (+ $9.000)", "16 onzas - Frío (+ $9.000)"] },
+    { id: 5, restaurantId: 4, category: 'food', name: { es: "Capuchino", en: "Cappuccino" }, description: { es: "Delicioso café expreso con leche espumada.", en: "Delicious espresso with frothy milk." }, price: 7000, image: "capuchino.png", popular: true, optionGroups: [{ name: { es: "Temperatura", en: "Temperature" }, options: ["Caliente", "Frío"] }, { name: { es: "Tamaño", en: "Size" }, options: ["7 onzas", "9 onzas (+ $2.000)", "12 onzas (+ $5.000)", "14 onzas (+ $7.000)", "16 onzas (+ $9.000)"] }] },
     { id: 7, restaurantId: 4, category: 'food', name: { es: "Tinto", en: "Black Coffee" }, description: { es: "Café negro tradicional colombiano.", en: "Traditional Colombian black coffee." }, price: 1500, image: "tinto.jpg", popular: false },
     { id: 8, restaurantId: 4, category: 'food', name: { es: "Milo frio", en: "Cold Milo" }, description: { es: ".", en: "" }, price: 11500, image: "capuchino.png", popular: false },
     { id: 9, restaurantId: 4, category: 'food', name: { es: "Soda Michelada", en: "Michelada Soda" }, description: { es: "Refrescante soda michelada.", en: "Refreshing michelada soda." }, price: 15000, image: "michelada.jpg", popular: false, options: ["Frutos Rojos", "Frutos Amarillos", "Tamarindo"] },
@@ -328,7 +328,7 @@ function openProductDetails(productId, qty) {
     if (!product) return;
 
     // If it has options or description, show modal
-    if (product.options || product.description) {
+    if (product.options || product.optionGroups || product.description) {
         openOptionsModal(productId, qty);
     }
 }
@@ -362,7 +362,19 @@ function openOptionsModal(productId, qty) {
     }
 
     const optsContainer = document.getElementById('options-container');
-    if (product.options && product.options.length > 0) {
+    if (product.optionGroups && product.optionGroups.length > 0) {
+        optsContainer.innerHTML = '';
+        product.optionGroups.forEach((group, gIdx) => {
+            const groupName = group.name[currentLang] || group.name;
+            optsContainer.innerHTML += `<p style="font-weight: 600; font-size: 14px; margin-top: 10px; margin-bottom: 4px;">${groupName}:</p>`;
+            optsContainer.innerHTML += group.options.map((opt, i) => `
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+                    <input type="radio" name="product-option-${gIdx}" value="${opt}" ${i === 0 ? 'checked' : ''}>
+                    ${opt}
+                </label>
+            `).join('');
+        });
+    } else if (product.options && product.options.length > 0) {
         optsContainer.innerHTML = `<p style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Elige una opción:</p>`;
         optsContainer.innerHTML += product.options.map((opt, i) => `
             <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
@@ -391,27 +403,42 @@ function closeOptionsModal() {
 function confirmProductOptions() {
     if (!currentOptionsProduct) return;
 
-    let selectedOption = null;
-    const radios = document.getElementsByName('product-option');
-    for (let r of radios) {
-        if (r.checked) {
-            selectedOption = r.value;
-            break;
+    let selectedOptionArr = [];
+
+    if (currentOptionsProduct.optionGroups && currentOptionsProduct.optionGroups.length > 0) {
+        currentOptionsProduct.optionGroups.forEach((group, gIdx) => {
+            const radios = document.getElementsByName('product-option-' + gIdx);
+            for (let r of radios) {
+                if (r.checked) {
+                    selectedOptionArr.push(r.value);
+                    break;
+                }
+            }
+        });
+    } else {
+        const radios = document.getElementsByName('product-option');
+        for (let r of radios) {
+            if (r.checked) {
+                selectedOptionArr.push(r.value);
+                break;
+            }
         }
     }
 
-    addItemToCart(currentOptionsProduct, selectedOptionsQty, selectedOption);
+    const finalOptionString = selectedOptionArr.length > 0 ? selectedOptionArr.join(' | ') : null;
+
+    addItemToCart(currentOptionsProduct, selectedOptionsQty, finalOptionString);
     closeOptionsModal();
 }
 
 function addItemToCart(product, qty, option) {
     let finalPrice = product.price;
 
-    // Detectar ajuste de precio en las opciones, ej: "(+ $7.000)"
+    // Detectar ajustes de precio en las opciones múltiples, ej: "(+ $7.000)"
     if (option && option.includes('(+ $')) {
-        const parts = option.split('$');
-        if (parts.length > 1) {
-            const extraStr = parts[1].split(')')[0].replace(/\./g, '').trim();
+        const matches = [...option.matchAll(/\(\+ \$([\d.]+)\)/g)];
+        for (const match of matches) {
+            const extraStr = match[1].replace(/\./g, '');
             const extra = parseInt(extraStr);
             if (!isNaN(extra)) finalPrice += extra;
         }
@@ -483,7 +510,7 @@ function addToCartPopular(productId) {
     if (!product) return;
 
     // If it has options or description, show modal
-    if (product.options || product.description) {
+    if (product.options || product.optionGroups || product.description) {
         openOptionsModal(productId, 1);
     } else {
         addItemToCart(product, 1, null);
@@ -536,7 +563,7 @@ function addToCart(btn, productId) {
     const qty = qtySpan ? parseInt(qtySpan.innerText) : 1;
     const product = products.find(p => p.id === productId);
 
-    if (product.options || product.description) {
+    if (product.options || product.optionGroups || product.description) {
         openOptionsModal(productId, qty);
     } else {
         addItemToCart(product, qty, null);
