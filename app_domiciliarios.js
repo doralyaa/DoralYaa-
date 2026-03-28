@@ -158,9 +158,9 @@ function renderOrders() {
     const available = allOrders.filter(o => o.is_paid === true && (!o.driver_name || o.driver_name === '') && o.status !== 'delivered');
     
     // Filtrar: Mi entrega actual (Pagada, asignada a mí, no entregada aún)
-    const myOrder = allOrders.find(o => o.driver_name === myDriverName && o.status !== 'delivered' && myDriverName !== null);
+    const myOrders = allOrders.filter(o => o.driver_name === myDriverName && o.status !== 'delivered' && myDriverName !== null);
 
-    console.log(`[RENDER] Disponibles: ${available.length}, Mi Orden: ${myOrder ? myOrder.id : 'Ninguna'}`);
+    console.log(`[RENDER] Disponibles: ${available.length}, Mis Ordenes: ${myOrders.length}`);
 
     // Renderizar Disponibles
     if (available.length === 0) {
@@ -208,64 +208,66 @@ function renderOrders() {
         }).join('');
     }
 
-    // Renderizar Mi Pedido
-    if (myOrder) {
-        const items = myOrder.items || [];
-        const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.jpg' };
-        
-        myOrderContainer.innerHTML = `
-            <div class="assigned-card">
-                <div class="order-header">
-                    <span class="order-id">#${myOrder.id}</span>
-                    <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
-                </div>
-                <div class="order-body">
-                    <div class="info-item">
-                        <i data-lucide="store"></i>
-                        <div>
-                            <span class="label">RECOGIDA</span>
-                            <span class="value">${rest.name}</span>
+    // Renderizar Mis Pedidos
+    if (myOrders.length > 0) {
+        myOrderContainer.innerHTML = myOrders.map(myOrder => {
+            const items = myOrder.items || [];
+            const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.jpg' };
+            
+            return `
+                <div class="assigned-card" style="margin-bottom: 16px;">
+                    <div class="order-header">
+                        <span class="order-id">#${myOrder.id}</span>
+                        <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
+                    </div>
+                    <div class="order-body">
+                        <div class="info-item">
+                            <i data-lucide="store"></i>
+                            <div>
+                                <span class="label">RECOGIDA</span>
+                                <span class="value">${rest.name}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="user"></i>
+                            <div>
+                                <span class="label">CLIENTE</span>
+                                <span class="value">${myOrder.customer_name}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="map-pin"></i>
+                            <div>
+                                <span class="label">ENTREGA</span>
+                                <span class="value">${myOrder.customer_address}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="phone"></i>
+                            <div>
+                                <span class="label">TELÉFONO</span>
+                                <span class="value">${myOrder.customer_phone}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <i data-lucide="user"></i>
-                        <div>
-                            <span class="label">CLIENTE</span>
-                            <span class="value">${myOrder.customer_name}</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i data-lucide="map-pin"></i>
-                        <div>
-                            <span class="label">ENTREGA</span>
-                            <span class="value">${myOrder.customer_address}</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i data-lucide="phone"></i>
-                        <div>
-                            <span class="label">TELÉFONO</span>
-                            <span class="value">${myOrder.customer_phone}</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="contact-buttons">
-                    <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp">
-                        <i data-lucide="message-circle"></i> WhatsApp
-                    </a>
-                    <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white;">
-                        <i data-lucide="check-circle"></i> ENTREGADO
-                    </button>
+                    <div class="contact-buttons">
+                        <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp">
+                            <i data-lucide="message-circle"></i> WhatsApp
+                        </a>
+                        <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white;">
+                            <i data-lucide="check-circle"></i> ENTREGADO
+                        </button>
+                    </div>
+                    
+                    <div class="unassign-row">
+                        <button onclick="unassignOrder('${myOrder.id}')" class="unassign-link">
+                            <i data-lucide="rotate-ccw"></i> Desistir del pedido
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="unassign-row">
-                    <button onclick="unassignOrder('${myOrder.id}')" class="unassign-link">
-                        <i data-lucide="rotate-ccw"></i> Desistir del pedido
-                    </button>
-                </div>
-            </div>
-        `;
+            `;
+        }).join('');
     } else {
         myOrderContainer.innerHTML = `
             <div class="empty-mini">

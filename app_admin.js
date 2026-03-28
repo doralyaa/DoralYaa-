@@ -587,6 +587,7 @@ async function checkAdminAuth() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
+    populateMerchantFilters();
     try {
         if (typeof Swal === 'undefined') {
             console.warn('SweetAlert2 not loaded immediately, waiting for it...');

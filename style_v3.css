@@ -456,6 +456,8 @@ header {
 }
 @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .product-img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; }
+.product-info { display: flex; flex-direction: column; flex: 1; margin-top: 8px; }
+.product-price-row { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .product-info h3 { font-size: 14px; margin-bottom: 4px; }
 .product-controls { display: flex; align-items: center; justify-content: space-between; background: #F1F1F1; border-radius: 12px; padding: 4px; margin-bottom: 8px; }
 .control-btn { width: 28px; height: 28px; border-radius: 8px; border: none; background: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
