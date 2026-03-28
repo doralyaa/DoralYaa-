@@ -297,7 +297,7 @@ function renderPopularProducts() {
     const dotsContainer = document.getElementById('carousel-dots');
     if (!container || !dotsContainer) return;
 
-    const populars = products.filter(p => p.popular);
+    const populars = products.filter(p => p.popular).slice(0, 5);
     if (populars.length === 0) return;
 
     let trackHtml = `<div class="carousel-track" id="carousel-track">`;
@@ -991,6 +991,8 @@ async function initApp() {
         const { data, error } = await getSupabaseClient().from('orders').select('items');
         if (!error && data) {
             const counts = {};
+            const prodCounts = {};
+            
             data.forEach(order => {
                 if (order.items && Array.isArray(order.items)) {
                     // Contar cada restaurante máximo una vez por pedido
@@ -998,16 +1000,43 @@ async function initApp() {
                     uniqueRestIds.forEach(id => {
                         counts[id] = (counts[id] || 0) + 1;
                     });
+                    
+                    // Contar cada producto y sus cantidades
+                    order.items.forEach(item => {
+                        if (item.id) {
+                            prodCounts[item.id] = (prodCounts[item.id] || 0) + (item.qty || 1);
+                        }
+                    });
                 }
             });
+            
             // Ordenar de mayor a menor según los pedidos
             restaurants.sort((a, b) => {
                 const countA = counts[a.id] || 0;
                 const countB = counts[b.id] || 0;
                 return countB - countA;
             });
+            
+            // Determinar los 5 productos más vendidos usando histórico (con desempate por popularidad inicial)
+            const sortedProds = [...products].sort((a, b) => {
+                const countA = prodCounts[a.id] || 0;
+                const countB = prodCounts[b.id] || 0;
+                if (countA === countB) {
+                    return (b.popular ? 1 : 0) - (a.popular ? 1 : 0);
+                }
+                return countB - countA;
+            });
+            
+            // Etiquetar solo los mejores 5 y desenmarcar el resto
+            products.forEach(p => p.popular = false);
+            sortedProds.slice(0, 5).forEach(p => {
+                const orig = products.find(op => op.id === p.id);
+                if (orig) orig.popular = true;
+            });
+
             // Volver a renderizar la lista ya ordenada
             if (!currentRestaurantId) renderRestaurants();
+            renderPopularProducts();
         }
     } catch (e) {
         console.error('Error fetching order counts:', e);
