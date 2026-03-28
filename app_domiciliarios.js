@@ -4,7 +4,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const restaurants = [
-    { id: 1, name: "Burger Gourmet", image: "cat_food.png" },
+    { id: 1, name: "Santa Maria", image: "santamaria.jpg" },
     { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png" },
     { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg" },
     { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg" },

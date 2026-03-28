@@ -15,7 +15,7 @@ let orders = [];
 
 // Phone mapping for restaurants
 const RESTAURANT_PHONES = {
-    1: "573222737975", // Burger Gourmet
+    1: "573222737975", // Santa Maria
     2: "573222737976", // Farmacia
     3: "573222737977", // Supermercado
     4: "573127922967", // Greegory's Coffee
@@ -203,7 +203,7 @@ function generateWhatsAppLinks(order) {
 }
 
 const restaurants = [
-    { id: 1, category: 'food', name: "Burger Gourmet", image: "cat_food.png" },
+    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg" },
     { id: 2, category: 'pharmacy', name: "Farmacia San José", image: "cat_pharmacy.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg" },
     { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg" },

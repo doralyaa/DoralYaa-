@@ -985,4 +985,33 @@ async function adminLogin() {
 }
 window.adminLogin = adminLogin;
 
-updateUI();
+async function initApp() {
+    updateUI();
+    try {
+        const { data, error } = await getSupabaseClient().from('orders').select('items');
+        if (!error && data) {
+            const counts = {};
+            data.forEach(order => {
+                if (order.items && Array.isArray(order.items)) {
+                    // Contar cada restaurante máximo una vez por pedido
+                    const uniqueRestIds = [...new Set(order.items.map(i => i.restaurantId))];
+                    uniqueRestIds.forEach(id => {
+                        counts[id] = (counts[id] || 0) + 1;
+                    });
+                }
+            });
+            // Ordenar de mayor a menor según los pedidos
+            restaurants.sort((a, b) => {
+                const countA = counts[a.id] || 0;
+                const countB = counts[b.id] || 0;
+                return countB - countA;
+            });
+            // Volver a renderizar la lista ya ordenada
+            if (!currentRestaurantId) renderRestaurants();
+        }
+    } catch (e) {
+        console.error('Error fetching order counts:', e);
+    }
+}
+
+initApp();
