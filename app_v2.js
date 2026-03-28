@@ -1,6 +1,6 @@
 const translations = {
     es: {
-        greet: "¡Hola Amaya!",
+        greet: "¡Hola!",
         subgreet: "Pidamos algo de comida y tengamos un día delicioso",
         searchPlaceholder: "Buscar...",
         bannerTag: "#OfertaDeSábado",
@@ -22,7 +22,7 @@ const translations = {
         added: "¡Añadido!"
     },
     en: {
-        greet: "Hey Amaya!",
+        greet: "Hello!",
         subgreet: "Let's order some food and have a delicious day",
         searchPlaceholder: "Search...",
         bannerTag: "#SaturdayOffer",
@@ -81,7 +81,7 @@ function updateUI() {
     document.getElementById('prod-title').innerText = t.prodTitle;
     document.getElementById('view-all-cats').innerText = t.viewAll;
     document.getElementById('view-all-prods').innerText = t.viewAll;
-    
+
     // Update Cart Modal Static Text
     const modal = document.getElementById('cart-modal');
     if (modal) {
@@ -151,14 +151,14 @@ function addToCart(btn, productId) {
     const card = btn.closest('.product-card');
     const qty = parseInt(card.querySelector('.qty').innerText);
     const product = products.find(p => p.id === productId);
-    
+
     const existing = cart.find(item => item.id === productId);
     if (existing) {
         existing.qty += qty;
     } else {
         cart.push({ ...product, qty });
     }
-    
+
     updateCartCount();
     card.querySelector('.qty').innerText = '1';
 
@@ -219,13 +219,13 @@ function updateTotals() {
 
 function checkoutWhatsApp() {
     if (cart.length === 0) return;
-    
+
     let message = `*DoraYaa! - Nuevo Pedido*%0A%0A`;
     cart.forEach(item => {
         message += `- ${item.qty}x ${item.name[currentLang]} ($${(item.qty * item.price).toFixed(2)})%0A`;
     });
     message += `%0A*Total: $${cart.reduce((acc, item) => acc + (item.price * item.qty), 0).toFixed(2)}*`;
-    
+
     window.open(`https://wa.me/573000000000?text=${message}`, '_blank');
 }
 
