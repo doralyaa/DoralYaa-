@@ -508,6 +508,31 @@ async function togglePaymentStatus(orderId, currentStatus) {
             background: newStatus ? '#28a745' : '#dc3545',
             color: '#fff'
         });
+
+        // Hacemos ping al bot para que le notifique al restaurante si acaba de ser pagado
+        if (newStatus === true && idx > -1) {
+            const orderObj = orders[idx];
+            if (orderObj && orderObj.items && orderObj.items.length > 0) {
+                const restId = orderObj.items[0].restaurantId;
+                // Si la orden tiene comercio asociado, notificar
+                const restPhone = RESTAURANT_PHONES[restId];
+                if (restPhone) {
+                    try {
+                        fetch('https://pentarchical-knuckly-tenley.ngrok-free.dev/api/notify-paid', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                restauranteNumero: restPhone
+                            })
+                        }).catch(e => console.error('Error enviando petición al bot:', e));
+                    } catch(e) { console.error('Error notificando pago al bot:', e); }
+                }
+            }
+        }
     }
 }
 

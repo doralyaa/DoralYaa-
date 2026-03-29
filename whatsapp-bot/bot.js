@@ -125,12 +125,12 @@ client.on('message_create', async (message) => {
         // Enviar imagen del código QR local
         try {
             const qrMedia = MessageMedia.fromFilePath(__dirname + '/qr.jpg');
-            await client.sendMessage(orderData.clienteNumero, qrMedia, { caption: 'QR Oficial de DoralYaa!' });
+            await client.sendMessage(orderData.clienteNumero, qrMedia, { caption: 'QR de pago DoralYaa!' });
         } catch (e) {
             console.log("No se pudo enviar la imagen del QR al cliente. Verifica que el archivo 'qr.jpg' exista:", e);
         }
 
-        await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Le confirmé el pedido al cliente y le envié los datos de pago de DoralYaa!.`);
+        await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Confirmaremos el pago para empezar a preparar el pedido.`);
         delete pendingOrders[pendingOrderId];
 
     } else if (command === 'NO') {
@@ -182,6 +182,27 @@ app.post('/api/send-order', async (req, res) => {
     } catch (error) {
         console.error('Error en /api/send-order:', error);
         res.status(500).json({ success: false, error: 'Ocurrió un error en el bot de WhatsApp' });
+    }
+});
+
+// 3. Servidor API para notificar que un pedido fue pagado
+app.post('/api/notify-paid', async (req, res) => {
+    try {
+        const { orderId, restauranteNumero } = req.body;
+        if (!orderId || !restauranteNumero) {
+            return res.status(400).json({ success: false, error: 'Faltan parámetros' });
+        }
+        
+        const formatRestNumber = `${restauranteNumero}@c.us`;
+        const msgRestaurante = `✅ ¡El pago de la orden #${orderId} ha sido confirmado por DoralYaa!\n\nYa puedes empezar a preparar el pedido en tu cocina.`;
+        
+        await client.sendMessage(formatRestNumber, msgRestaurante);
+        console.log(`[API] Notificando al Restaurante ${restauranteNumero} que la orden #${orderId} está pagada.`);
+        
+        res.status(200).json({ success: true, message: 'Notificación de pago enviada.' });
+    } catch (error) {
+        console.error('Error en /api/notify-paid:', error);
+        res.status(500).json({ success: false, error: 'Ocurrió un error al notificar el pago.' });
     }
 });
 

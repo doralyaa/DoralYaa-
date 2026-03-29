@@ -776,7 +776,7 @@ async function submitOrder() {
                     restauranteNumero: numRestaurante,
                     qrUrl: qrPagar,
                     totalPedido: formatPrice(orderTotal),
-                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\nTotal a pagar: ${formatPrice(orderTotal)} (incluye ${formatPrice(DELIVERY_FEE)} envío)\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
+                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
                 })
             });
         } catch (botErr) {
