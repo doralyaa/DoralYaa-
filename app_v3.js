@@ -114,7 +114,7 @@ const products = [
     { id: 7, restaurantId: 4, category: 'food', name: { es: "Tinto", en: "Black Coffee" }, description: { es: "Café negro tradicional colombiano.", en: "Traditional Colombian black coffee." }, price: 1500, image: "tinto.jpg", popular: false },
     { id: 8, restaurantId: 4, category: 'food', name: { es: "Milo frio", en: "Cold Milo" }, description: { es: ".", en: "" }, price: 11500, image: "capuchino.png", popular: false },
     { id: 9, restaurantId: 4, category: 'food', name: { es: "Soda Michelada", en: "Michelada Soda" }, description: { es: "Refrescante soda michelada.", en: "Refreshing michelada soda." }, price: 15000, image: "michelada.jpg", popular: false, options: ["Frutos Rojos", "Frutos Amarillos", "Tamarindo"] },
-    { id: 12, restaurantId: 4, category: 'food', name: { es: "Sándwich", en: "ChickenSandwich" }, description: { es: "Delicioso sándwich  para acompañar tu café.", en: "Classic sandwich to go with your coffee." }, price: 16000, image: "sandwich.jpg", popular: false },
+    { id: 12, restaurantId: 4, category: 'food', name: { es: "Sándwich", en: "ChickenSandwich" }, description: { es: "Delicioso sándwich  para acompañar tu café.", en: "Classic sandwich to go with your coffee." }, price: 19500, image: "sandwich.jpg", popular: false },
     { id: 15, restaurantId: 5, category: 'food', name: { es: "Jamón y Queso", en: "Ham & Cheese" }, price: 9600, image: "cat_food.png", popular: false },
     { id: 16, restaurantId: 5, category: 'food', name: { es: "Con Queso", en: "With Cheese" }, price: 7800, image: "cat_food.png", popular: false },
     { id: 17, restaurantId: 5, category: 'food', name: { es: "Chócolo", en: "Chócolo" }, description: { es: "Jamón y queso tipo mozzarella", en: "Ham and mozzarella cheese" }, price: 13200, image: "grill_chocolo.jpg", popular: true },
@@ -992,7 +992,7 @@ async function initApp() {
         if (!error && data) {
             const counts = {};
             const prodCounts = {};
-            
+
             data.forEach(order => {
                 if (order.items && Array.isArray(order.items)) {
                     // Contar cada restaurante máximo una vez por pedido
@@ -1000,7 +1000,7 @@ async function initApp() {
                     uniqueRestIds.forEach(id => {
                         counts[id] = (counts[id] || 0) + 1;
                     });
-                    
+
                     // Contar cada producto y sus cantidades
                     order.items.forEach(item => {
                         if (item.id) {
@@ -1009,14 +1009,14 @@ async function initApp() {
                     });
                 }
             });
-            
+
             // Ordenar de mayor a menor según los pedidos
             restaurants.sort((a, b) => {
                 const countA = counts[a.id] || 0;
                 const countB = counts[b.id] || 0;
                 return countB - countA;
             });
-            
+
             // Determinar los 5 productos más vendidos usando histórico (con desempate por popularidad inicial)
             const sortedProds = [...products].sort((a, b) => {
                 const countA = prodCounts[a.id] || 0;
@@ -1026,7 +1026,7 @@ async function initApp() {
                 }
                 return countB - countA;
             });
-            
+
             // Etiquetar solo los mejores 5 y desenmarcar el resto
             products.forEach(p => p.popular = false);
             sortedProds.slice(0, 5).forEach(p => {
