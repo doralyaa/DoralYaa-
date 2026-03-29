@@ -177,11 +177,16 @@ function renderOrders() {
             const items = Array.isArray(o.items) ? o.items : [];
             const restId = items.length > 0 ? items[0].restaurantId : null;
             const rest = restaurants.find(r => r.id === restId) || { name: 'DoralYaa!', image: 'logo.jpg' };
+            const dateObj = new Date(o.created_at);
+            const timeStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
             
             return `
                 <div class="order-card">
                     <div class="order-header">
-                        <span class="order-id">#${o.id}</span>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span class="order-id">#${o.id}</span>
+                            <span style="font-size: 11px; color: #666; font-weight: 600;"><i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: text-bottom;"></i> Preparando desde: ${timeStr}</span>
+                        </div>
                         <span class="order-price">${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
                     </div>
                     <div class="order-body">
@@ -213,11 +218,16 @@ function renderOrders() {
         myOrderContainer.innerHTML = myOrders.map(myOrder => {
             const items = myOrder.items || [];
             const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.jpg' };
+            const dateObj = new Date(myOrder.created_at);
+            const timeStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
             
             return `
                 <div class="assigned-card" style="margin-bottom: 16px;">
                     <div class="order-header">
-                        <span class="order-id">#${myOrder.id}</span>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span class="order-id">#${myOrder.id}</span>
+                            <span style="font-size: 11px; color: #E3F2FD; font-weight: 500; opacity: 0.9;"><i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: text-bottom;"></i> Emitido: ${timeStr}</span>
+                        </div>
                         <span class="order-price" style="background:rgba(255,255,255,0.2); color:white;">Ganancia: ${formatPrice(DELIVERY_CONFIG.fee * DELIVERY_CONFIG.driverShare)}</span>
                     </div>
                     <div class="order-body">
