@@ -512,6 +512,12 @@ async function togglePaymentStatus(orderId, currentStatus) {
         // Hacemos ping al bot para que le notifique al restaurante si acaba de ser pagado
         if (newStatus === true && idx > -1) {
             const orderObj = orders[idx];
+            
+            // Pasar a "En Proceso" si estaba en "Pendiente"
+            if (orderObj && orderObj.status === 'pending') {
+                updateOrderStatus(orderId, 'processing');
+            }
+
             if (orderObj && orderObj.items && orderObj.items.length > 0) {
                 const restId = orderObj.items[0].restaurantId;
                 // Si la orden tiene comercio asociado, notificar
