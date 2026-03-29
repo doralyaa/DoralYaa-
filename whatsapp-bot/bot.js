@@ -49,10 +49,10 @@ client.on('message_create', async (message) => {
     // [EVITAR BUCLES] Ignorar TODOS los mensajes que el propio BOT envía a menos que sean un "SI" o "NO" manual.
     // Esto previene que el bot responda a sus propias instrucciones ("Por favor, responde...") o a las alertas de orden.
     if (message.fromMe) {
-        const isResponse = message.body.trim().toUpperCase() === 'SI' || 
-                           message.body.trim().toUpperCase() === 'SÍ' || 
-                           message.body.trim().toUpperCase() === 'NO';
-        
+        const isResponse = message.body.trim().toUpperCase() === 'SI' ||
+            message.body.trim().toUpperCase() === 'SÍ' ||
+            message.body.trim().toUpperCase() === 'NO';
+
         // Si es de nosotros pero NO es una de las respuestas clave, lo ignoramos.
         if (!isResponse) return;
     }
@@ -81,7 +81,7 @@ client.on('message_create', async (message) => {
     // 1. Si el usuario dio un ID (ej: "SI 1234"), buscar esa orden específica
     if (providedId) {
         selectedOrder = matchedOrders.find(o => o.id.includes(providedId) || providedId.includes(o.id));
-    } 
+    }
     // 2. Si solo hay UNA orden, la seleccionamos automáticamente
     else if (matchedOrders.length === 1) {
         selectedOrder = matchedOrders[0];
@@ -94,7 +94,7 @@ client.on('message_create', async (message) => {
             msgClarify += `• *#${o.id}*: ${o.totalPedido} (${o.detallesPedido.slice(0, 30)}...)\n`;
         });
         msgClarify += `\nEjemplo: "SI ${matchedOrders[0].id}"`;
-        
+
         if (!message.fromMe) {
             await client.sendMessage(matchedOrders[0].restauranteNumero, msgClarify);
         }
@@ -116,10 +116,21 @@ client.on('message_create', async (message) => {
     if (command === 'SI' || command === 'SÍ') {
         console.log(`✅ Restaurante aceptó orden #${pendingOrderId}`);
         const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
-        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\nRealiza el pago de ${totalTexto} a la cuenta de Nequi XXXXXXXXX, y empezaremos a preparar lo que tanto deseas.`;
+        
+        // Mensaje con los datos de DoralYaa
+        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR, te lo enviamos a continuación. Una vez pagues, envíanos el comprobante por este medio.`;
 
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
-        await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Le confirmé el pedido al cliente.`);
+        
+        // Enviar imagen del código QR local
+        try {
+            const qrMedia = MessageMedia.fromFilePath(__dirname + '/qr.jpg'); 
+            await client.sendMessage(orderData.clienteNumero, qrMedia, { caption: 'QR Oficial de DoralYaa!' });
+        } catch (e) {
+            console.log("No se pudo enviar la imagen del QR al cliente. Verifica que el archivo 'qr.jpg' exista:", e);
+        }
+
+        await client.sendMessage(orderData.restauranteNumero, `✔️ Listo. Le confirmé el pedido al cliente y le envié los datos de pago de DoralYaa!.`);
         delete pendingOrders[pendingOrderId];
 
     } else if (command === 'NO') {
