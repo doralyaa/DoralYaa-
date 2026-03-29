@@ -116,15 +116,15 @@ client.on('message_create', async (message) => {
     if (command === 'SI' || command === 'SÍ') {
         console.log(`✅ Restaurante aceptó orden #${pendingOrderId}`);
         const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
-        
+
         // Mensaje con los datos de DoralYaa
         const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR, te lo enviamos a continuación. Una vez pagues, envíanos el comprobante por este medio.`;
 
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
-        
+
         // Enviar imagen del código QR local
         try {
-            const qrMedia = MessageMedia.fromFilePath(__dirname + '/qr.jpg'); 
+            const qrMedia = MessageMedia.fromFilePath(__dirname + '/qr.jpg');
             await client.sendMessage(orderData.clienteNumero, qrMedia, { caption: 'QR Oficial de DoralYaa!' });
         } catch (e) {
             console.log("No se pudo enviar la imagen del QR al cliente. Verifica que el archivo 'qr.jpg' exista:", e);
