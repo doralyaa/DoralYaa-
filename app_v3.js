@@ -755,32 +755,65 @@ async function submitOrder() {
 
         // --- Petición al Bot Local de WhatsApp ---
         try {
-            const detalles = cart.map(item => `${item.qty}x ${item.name[currentLang]} (${item.option ? item.option : 'Sin opción'})`).join('\n');
             let formatPhone = phoneInput.replace(/\D/g, ''); // Quitar cualquier letra/espacio
             if (formatPhone.length === 10) formatPhone = '57' + formatPhone; // Prevenir num de col sin indicativo
 
-            // Averiguar de qué restaurante es el pedido (usamos el primero del carrito)
-            const restaurantApp = restaurants.find(r => r.id === cart[0].restaurantId);
-            const numRestaurante = restaurantApp && restaurantApp.whatsapp ? restaurantApp.whatsapp : '573222737975'; // fallback
-            const qrPagar = restaurantApp && restaurantApp.qrUrl ? restaurantApp.qrUrl : '';
-
-            await fetch('https://pentarchical-knuckly-tenley.ngrok-free.dev/api/send-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true' // Salta la pantalla de advertencia gratuita de Ngrok
-                },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    clienteNumero: formatPhone,
-                    restauranteNumero: numRestaurante,
-                    qrUrl: qrPagar,
-                    totalPedido: formatPrice(orderTotal),
-                    detallesPedido: `Cliente: ${nameInput}\nDirección: ${addressInput}\n\nProductos:\n${detalles}\n\nNotas: ${notesInput || 'Ninguna'}`,
-                })
+            // Agrupar productos por restaurante
+            const itemsByRestaurant = {};
+            cart.forEach(item => {
+                if (!itemsByRestaurant[item.restaurantId]) {
+                    itemsByRestaurant[item.restaurantId] = {
+                        items: [],
+                        subtotal: 0
+                    };
+                }
+                itemsByRestaurant[item.restaurantId].items.push(item);
+                itemsByRestaurant[item.restaurantId].subtotal += (item.price * item.qty);
             });
-        } catch (botErr) {
-            console.error('Error comunicando con el bot (asegúrate de que node bot.js esté encendido):', botErr);
+
+            // Enviar petición por cada restaurante
+            let index = 1;
+            for (const [restIdStr, data] of Object.entries(itemsByRestaurant)) {
+                try {
+                    const restId = parseInt(restIdStr);
+                    const restaurantApp = restaurants.find(r => r.id === restId);
+                    const numRestaurante = restaurantApp && restaurantApp.whatsapp ? restaurantApp.whatsapp : '573222737975';
+                    const qrPagar = restaurantApp && restaurantApp.qrUrl ? restaurantApp.qrUrl : '';
+
+                    // Detalles específicos para este restaurante (sin precio)
+                    const detalles = data.items.map(item => `${item.qty}x ${item.name[currentLang]} (${item.option ? item.option : 'Sin opción'})`).join('\n');
+
+                    let detallesPedido = `Cliente: ${nameInput}\nDirección: ${addressInput}\n\n~ Productos de tu comercio ~\n${detalles}\n`;
+
+                    const multitienda = Object.keys(itemsByRestaurant).length > 1;
+
+                    detallesPedido += `\n\nNotas del cliente: ${notesInput || 'Ninguna'}`;
+
+                    // Sufijo para diferenciar la orden si hay varios restaurantes
+                    const subOrderId = multitienda ? `${orderId}-${index}` : orderId;
+
+                    await fetch('https://pentarchical-knuckly-tenley.ngrok-free.dev/api/send-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': 'true' // Salta la pantalla de advertencia gratuita de Ngrok
+                        },
+                        body: JSON.stringify({
+                            orderId: subOrderId,
+                            clienteNumero: formatPhone,
+                            restauranteNumero: numRestaurante,
+                            qrUrl: qrPagar,
+                            totalPedido: formatPrice(orderTotal), // El bot confirmará el monto global para el pago centralizado
+                            detallesPedido: detallesPedido,
+                        })
+                    });
+                } catch (botErr) {
+                    console.error('Error comunicando con el bot para el restaurante ' + restIdStr, botErr);
+                }
+                index++;
+            }
+        } catch (globalBotErr) {
+            console.error('Error general en el envío al bot', globalBotErr);
         }
         // ------------------------------------------
 

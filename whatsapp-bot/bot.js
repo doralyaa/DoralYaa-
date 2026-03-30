@@ -118,7 +118,7 @@ client.on('message_create', async (message) => {
         const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
 
         // Mensaje con los datos de DoralYaa
-        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR, te lo enviamos a continuación. Una vez pagues, envíanos el comprobante por este medio.`;
+        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR, te lo enviamos a continuación. Una vez pagues, envíanos el comprobante por este medio, y Yaa! mismo prepararemos tu orden.`;
 
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
 
@@ -192,13 +192,13 @@ app.post('/api/notify-paid', async (req, res) => {
         if (!orderId || !restauranteNumero) {
             return res.status(400).json({ success: false, error: 'Faltan parámetros' });
         }
-        
+
         const formatRestNumber = `${restauranteNumero}@c.us`;
         const msgRestaurante = `✅ ¡El pago de la orden #${orderId} ha sido confirmado por DoralYaa!\n\nYa puedes empezar a preparar el pedido en tu cocina.`;
-        
+
         await client.sendMessage(formatRestNumber, msgRestaurante);
         console.log(`[API] Notificando al Restaurante ${restauranteNumero} que la orden #${orderId} está pagada.`);
-        
+
         res.status(200).json({ success: true, message: 'Notificación de pago enviada.' });
     } catch (error) {
         console.error('Error en /api/notify-paid:', error);
