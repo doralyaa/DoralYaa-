@@ -118,7 +118,7 @@ client.on('message_create', async (message) => {
         const totalTexto = orderData.totalPedido || 'el valor de tu pedido';
 
         // Mensaje con los datos de DoralYaa
-        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR, te lo enviamos a continuación. Una vez pagues, envíanos el comprobante por este medio, y Yaa! mismo prepararemos tu orden.`;
+        const msgConfirm = `¡Hola! Tu pedido ha sido confirmado.\n\nPor favor, realiza el pago de *${totalTexto}* con Bre-B a la llave *0092326067*.\n\nSi prefieres código QR escanealo desde la app de tu banco. Una vez pagues, envíanos el comprobante por este medio, y Yaa! mismo prepararemos tu orden.`;
 
         await client.sendMessage(orderData.clienteNumero, msgConfirm);
 
@@ -144,7 +144,7 @@ client.on('message_create', async (message) => {
     } else {
         // Solo mandamos el recordatorio si el mensaje NO es de "mí mismo"
         if (!message.fromMe) {
-            await client.sendMessage(orderData.restauranteNumero, `Por favor, responde únicamente "SI [ID]" o "NO [ID]" para la orden #${pendingOrderId}.`);
+            await client.sendMessage(orderData.restauranteNumero, `Por favor, responde únicamente "SI" o "NO" para la orden #${pendingOrderId}.`);
         }
     }
 });
