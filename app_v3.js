@@ -101,8 +101,8 @@ const restaurants = [
     { id: 2, category: 'pharmacy', name: "Farmacia", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573147849660", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
     { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
-    { id: 5, category: 'food', name: "Grill Arepas", image: "grill.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
-    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
+    { id: 5, category: 'food', name: "Grill Arepas", image: "grill.jpg", whatsapp: "573192573796", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
+    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg", whatsapp: "573147599734", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
 ];
 
 const products = [
