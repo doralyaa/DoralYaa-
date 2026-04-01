@@ -97,7 +97,7 @@ function formatPrice(price) {
 }
 
 const restaurants = [
-    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
+    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg", whatsapp: "573122025207", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
     { id: 2, category: 'pharmacy', name: "Farmacia", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573147849660", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
     { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },

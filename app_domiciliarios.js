@@ -7,7 +7,7 @@ const restaurants = [
     { id: 1, name: "Santa Maria", image: "santamaria.jpg", phone: "573222737975" },
     { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png", phone: "573222737976" },
     { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg", phone: "573222737977" },
-    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg", phone: "573127922967" },
+    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg", phone: "573222737975" },
     { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg", phone: "573222737975" },
     { id: 6, name: "Classic Burger", image: "classic_burger.jpg", phone: "573222737975" }
 ];
@@ -28,7 +28,7 @@ function formatPrice(price) {
 // ─── Inicialización ────────────────────────────────────────────────────────
 async function init() {
     console.log("[INIT] Iniciando aplicación de domiciliarios...");
-    
+
     if (!myDriverId) {
         document.getElementById('login-overlay').style.display = 'flex';
     } else {
@@ -84,7 +84,7 @@ async function handleLogin() {
         localStorage.setItem('domiciliario_name', data.name);
 
         Swal.fire({ icon: 'success', title: `¡Bienvenido ${data.name}!`, timer: 1500, showConfirmButton: false });
-        
+
         document.getElementById('login-overlay').style.display = 'none';
         updateDriverDisplay();
         await loadAvailableOrders();
@@ -128,7 +128,7 @@ function subscribeToChanges() {
         .channel('delivery-channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
             console.log(`[REALTIME] ${payload.eventType} en orders:`, payload.new);
-            
+
             if (payload.eventType === 'INSERT') {
                 allOrders.unshift(payload.new);
             } else if (payload.eventType === 'UPDATE') {
@@ -156,7 +156,7 @@ function renderOrders() {
 
     // Filtrar: Disponibles (Pagadas, sin repartidor)
     const available = allOrders.filter(o => o.is_paid === true && (!o.driver_name || o.driver_name === '') && o.status !== 'delivered');
-    
+
     // Filtrar: Mi entrega actual (Pagada, asignada a mí, no entregada aún)
     const myOrders = allOrders.filter(o => o.driver_name === myDriverName && o.status !== 'delivered' && myDriverName !== null);
 
@@ -179,7 +179,7 @@ function renderOrders() {
             const rest = restaurants.find(r => r.id === restId) || { name: 'DoralYaa!', image: 'logo.jpg' };
             const dateObj = new Date(o.created_at);
             const timeStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-            
+
             return `
                 <div class="order-card">
                     <div class="order-header">
@@ -220,7 +220,7 @@ function renderOrders() {
             const rest = restaurants.find(r => r.id === items[0]?.restaurantId) || { name: 'DoralYaa!', image: 'logo.jpg' };
             const dateObj = new Date(myOrder.created_at);
             const timeStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-            
+
             return `
                 <div class="assigned-card" style="margin-bottom: 16px;">
                     <div class="order-header">
@@ -265,7 +265,7 @@ function renderOrders() {
                         <a href="https://wa.me/${rest.phone || '573000000000'}?text=Hola,%20soy%20el%20domiciliario%20del%20pedido%20%23${myOrder.id},%20%C2%BFya%20est%C3%A1%20listo%3F" class="contact-btn btn-whatsapp" style="flex: 1; min-width: 120px; background: #25D366; color: white;">
                             <i data-lucide="message-circle"></i> Restaurante
                         </a>
-                        <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp" style="flex: 1; min-width: 120px;">
+                        <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g, '')}" class="contact-btn btn-whatsapp" style="flex: 1; min-width: 120px;">
                             <i data-lucide="message-circle"></i> Cliente
                         </a>
                         <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white; flex: 1; min-width: 100%;">
@@ -361,12 +361,12 @@ async function unassignOrder(orderId) {
         if (error) {
             Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo liberar el pedido.' });
         } else {
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Pedido Liberado', 
-                text: 'El pedido ahora está disponible de nuevo.', 
-                timer: 2000, 
-                showConfirmButton: false 
+            Swal.fire({
+                icon: 'success',
+                title: 'Pedido Liberado',
+                text: 'El pedido ahora está disponible de nuevo.',
+                timer: 2000,
+                showConfirmButton: false
             });
         }
     }
