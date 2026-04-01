@@ -4,12 +4,12 @@ const SUPABASE_ANON_KEY = 'sb_publishable_DWFxv5ZYhZjrtBKc2aGomQ_lor6K66W';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const restaurants = [
-    { id: 1, name: "Santa Maria", image: "santamaria.jpg" },
-    { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png" },
-    { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg" },
-    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg" },
-    { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg" },
-    { id: 6, name: "Classic Burger", image: "classic_burger.jpg" }
+    { id: 1, name: "Santa Maria", image: "santamaria.jpg", phone: "573222737975" },
+    { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png", phone: "573222737976" },
+    { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg", phone: "573222737977" },
+    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg", phone: "573127922967" },
+    { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg", phone: "573222737975" },
+    { id: 6, name: "Classic Burger", image: "classic_burger.jpg", phone: "573222737975" }
 ];
 
 const DELIVERY_CONFIG = {
@@ -261,11 +261,14 @@ function renderOrders() {
                         </div>
                     </div>
 
-                    <div class="contact-buttons">
-                        <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp">
-                            <i data-lucide="message-circle"></i> WhatsApp
+                    <div class="contact-buttons" style="flex-wrap: wrap;">
+                        <a href="https://wa.me/${rest.phone || '573000000000'}?text=Hola,%20soy%20el%20domiciliario%20del%20pedido%20%23${myOrder.id},%20%C2%BFya%20est%C3%A1%20listo%3F" class="contact-btn btn-whatsapp" style="flex: 1; min-width: 120px; background: #25D366; color: white;">
+                            <i data-lucide="message-circle"></i> Restaurante
                         </a>
-                        <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white;">
+                        <a href="https://wa.me/57${myOrder.customer_phone.replace(/\D/g,'')}" class="contact-btn btn-whatsapp" style="flex: 1; min-width: 120px;">
+                            <i data-lucide="message-circle"></i> Cliente
+                        </a>
+                        <button onclick="markAsDelivered('${myOrder.id}')" class="contact-btn btn-call" style="background:var(--primary); color:white; flex: 1; min-width: 100%;">
                             <i data-lucide="check-circle"></i> ENTREGADO
                         </button>
                     </div>
