@@ -16,10 +16,10 @@ let orders = [];
 // Phone mapping for restaurants
 const RESTAURANT_PHONES = {
     1: "573222737975", // Santa Maria
-    2: "573222737976", // Farmacia
+    2: "573222737975", // Farmacia
     3: "573222737977", // Supermercado
     4: "573127922967", // Greegory's Coffee
-    5: "573222737975", // Grill Arepas Parrilla
+    5: "573192573796", // Grill Arepas Parrilla
     6: "573222737975"  // Classic Burger
 };
 
@@ -512,7 +512,7 @@ async function togglePaymentStatus(orderId, currentStatus) {
         // Hacemos ping al bot para que le notifique al restaurante si acaba de ser pagado
         if (newStatus === true && idx > -1) {
             const orderObj = orders[idx];
-            
+
             // Pasar a "En Proceso" si estaba en "Pendiente"
             if (orderObj && orderObj.status === 'pending') {
                 updateOrderStatus(orderId, 'processing');
@@ -535,7 +535,7 @@ async function togglePaymentStatus(orderId, currentStatus) {
                                 restauranteNumero: restPhone
                             })
                         }).catch(e => console.error('Error enviando petición al bot:', e));
-                    } catch(e) { console.error('Error notificando pago al bot:', e); }
+                    } catch (e) { console.error('Error notificando pago al bot:', e); }
                 }
             }
         }

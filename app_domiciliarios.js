@@ -5,10 +5,10 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 const restaurants = [
     { id: 1, name: "Santa Maria", image: "santamaria.jpg", phone: "573222737975" },
-    { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png", phone: "573222737976" },
+    { id: 2, name: "Farmacia San José", image: "cat_pharmacy.png", phone: "573222737975" },
     { id: 3, name: "Supermercado Rindemax", image: "rindemax.jpg", phone: "573222737977" },
-    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg", phone: "573222737975" },
-    { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg", phone: "573222737975" },
+    { id: 4, name: "Greegory's Coffee", image: "greegorys.jpg", phone: "573127922967" },
+    { id: 5, name: "Grill Arepas parrilla", image: "grill.jpg", phone: "573192573796" },
     { id: 6, name: "Classic Burger", image: "classic_burger.jpg", phone: "573222737975" }
 ];
 

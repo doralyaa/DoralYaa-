@@ -97,13 +97,43 @@ function formatPrice(price) {
 }
 
 const restaurants = [
-    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg", whatsapp: "573122025207", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
-    { id: 2, category: 'pharmacy', name: "Farmacia", image: "cat_pharmacy.png", whatsapp: "573222737976", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
+    { id: 1, category: 'food', name: "Santa Maria", image: "santamaria.jpg", whatsapp: "573216399579", qrUrl: "https://i.imgur.com/ejemploQRFood.png" },
+    { id: 2, category: 'pharmacy', name: "Farmacia", image: "cat_pharmacy.png", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRPharm.png" },
     { id: 3, category: 'supermarket', name: "Supermercado Rindemax", image: "rindemax.jpg", whatsapp: "573147849660", qrUrl: "https://i.imgur.com/ejemploQRMarket.png" },
-    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
-    { id: 5, category: 'food', name: "Grill Arepas", image: "grill.jpg", whatsapp: "573192573796", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" },
-    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg", whatsapp: "573147599734", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
+    { id: 4, category: 'food', name: "Greegory's Coffee", image: "greegorys.jpg", whatsapp: "573127922967", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png", schedule: { open: 9, close: 23 } },
+    { id: 5, category: 'food', name: "Grill Arepas", image: "grill.jpg", whatsapp: "573192573796", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png", schedule: { open: 9, close: 22 } },
+    { id: 6, category: 'food', name: "Classic Burger", image: "classic.jpg", whatsapp: "573222737975", qrUrl: "https://i.imgur.com/ejemploQRCoffee.png" }
 ];
+
+function getRestaurantTimeStatus(restaurant) {
+    if (!restaurant || !restaurant.schedule) return { isOpen: true, message: "" };
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = (currentHour * 60) + currentMinute;
+
+    const openTimeInMinutes = restaurant.schedule.open * 60;
+    const closeTimeInMinutes = restaurant.schedule.close * 60;
+
+    // Si está en el rango de apertura
+    if (currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes) {
+        return { isOpen: true, message: "" };
+    }
+
+    // Si está fuera del rango
+    // Caso 1: Falta menos de una hora para abrir
+    const diffToOpen = openTimeInMinutes - currentTimeInMinutes;
+    if (diffToOpen > 0 && diffToOpen <= 60) {
+        return { isOpen: false, message: currentLang === 'es' ? "Abre pronto" : "Opening soon" };
+    }
+
+    // Caso 2: Falta más tiempo o ya cerró
+    const amPm = restaurant.schedule.open >= 12 ? 'p.m.' : 'a.m.';
+    const displayHour = restaurant.schedule.open > 12 ? restaurant.schedule.open - 12 : (restaurant.schedule.open === 0 ? 12 : restaurant.schedule.open);
+    const msg = currentLang === 'es' ? `Abre ${displayHour} ${amPm}` : `Opens ${displayHour} ${amPm}`;
+    return { isOpen: false, message: msg };
+}
 
 const products = [
     { id: 2, restaurantId: 2, category: 'pharmacy', name: { es: "Kit Primeros Auxilios", en: "First Aid Kit" }, price: 25500, image: "cat_pharmacy.png", popular: false },
@@ -237,12 +267,25 @@ function renderCategories() {
         { id: 'supermarket', icon: '🛒', name: translations[currentLang].categories.supermarket },
         { id: 'licores', icon: '🍾', name: translations[currentLang].categories.licores }
     ];
-    container.innerHTML = cats.map(cat => `
+    const disabledCats = ['pharmacy', 'supermarket', 'licores'];
+    const pLabel = currentLang === 'es' ? 'Próximamente' : 'Coming soon';
+
+    container.innerHTML = cats.map(cat => {
+        const isDisabled = disabledCats.includes(cat.id);
+        if (isDisabled) {
+            return `
+            <div class="category-card disabled-card" style="opacity: 0.6; cursor: not-allowed; position: relative;" onclick="event.preventDefault();">
+                <div class="category-icon">${cat.icon}</div>
+                <span>${cat.name}</span>
+                <div style="position: absolute; top: 4px; right: 4px; background: #FF6B00; color: white; font-size: 8px; font-weight: 800; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 5;">${pLabel}</div>
+            </div>`;
+        }
+        return `
         <div class="category-card ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">
             <div class="category-icon">${cat.icon}</div>
             <span>${cat.name}</span>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function filterCategory(catId) {
@@ -263,15 +306,47 @@ function renderRestaurants() {
     }
 
     const filtered = currentCategory === 'all' ? restaurants : restaurants.filter(r => r.category === currentCategory);
-    grid.innerHTML = filtered.map(r => `
+    const disabledRests = [1, 6]; // Santa Maria & Classic Burger
+    const disabledCatsRests = ['pharmacy', 'supermarket', 'licores'];
+    const pLabel = currentLang === 'es' ? 'Próximamente' : 'Coming soon';
+
+    grid.innerHTML = filtered.map(r => {
+        const isDisabled = disabledRests.includes(r.id) || disabledCatsRests.includes(r.category);
+        const timeStatus = getRestaurantTimeStatus(r);
+
+        if (isDisabled) {
+            return `
+            <div class="restaurant-card" style="opacity: 0.6; cursor: not-allowed; position: relative;" onclick="event.preventDefault();">
+                <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">
+                <div class="restaurant-info">
+                    <h3>${r.name}</h3>
+                    <p>${translations[currentLang].categories[r.category]}</p>
+                </div>
+                <div style="position: absolute; top: 12px; right: 12px; background: #FF6B00; color: white; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10;">${pLabel}</div>
+            </div>`;
+        }
+
+        if (!timeStatus.isOpen) {
+            return `
+            <div class="restaurant-card" style="position: relative;" onclick="showRestaurantProducts(${r.id})">
+                <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}" style="filter: grayscale(0.8);">
+                <div class="restaurant-info" style="opacity: 0.7;">
+                    <h3>${r.name}</h3>
+                    <p>${translations[currentLang].categories[r.category]}</p>
+                </div>
+                <div style="position: absolute; top: 12px; right: 12px; background: #555; color: white; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10;">${timeStatus.message}</div>
+            </div>`;
+        }
+
+        return `
         <div class="restaurant-card" onclick="showRestaurantProducts(${r.id})">
             <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">
             <div class="restaurant-info">
                 <h3>${r.name}</h3>
                 <p>${translations[currentLang].categories[r.category]}</p>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function showRestaurantProducts(restId) {
@@ -282,7 +357,15 @@ function showRestaurantProducts(restId) {
     document.getElementById('product-grid').style.display = 'grid';
     document.getElementById('restaurant-products-header').style.display = 'flex';
     if (rest) {
-        document.getElementById('prod-title').innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><img src="${rest.image}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain; background: var(--accent-orange);" alt=""><span>${rest.name}</span></div>`;
+        const timeStatus = getRestaurantTimeStatus(rest);
+        let headerHtml = `<div style="display: flex; align-items: center; gap: 12px;">
+            <img src="${rest.image}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: contain; background: var(--accent-orange);" alt="">
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 700;">${rest.name}</span>
+                ${!timeStatus.isOpen ? `<span style="font-size: 11px; background: #555; color: white; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-top: 2px; font-weight: 800; text-transform: uppercase;">${timeStatus.message}</span>` : ''}
+            </div>
+        </div>`;
+        document.getElementById('prod-title').innerHTML = headerHtml;
     } else {
         document.getElementById('prod-title').innerText = '';
     }
@@ -312,19 +395,24 @@ function renderPopularProducts() {
 
     let trackHtml = `<div class="carousel-track" id="carousel-track">`;
     populars.forEach((p, index) => {
+        const rest = restaurants.find(r => r.id === p.restaurantId);
+        const timeStatus = getRestaurantTimeStatus(rest);
+        const btnText = !timeStatus.isOpen ? timeStatus.message : (currentLang === 'es' ? 'Pedir' : 'Order');
+
         trackHtml += `
         <div class="carousel-slide">
-            <div class="popular-card" onclick="addToCartPopular(${p.id})">
+            <div class="popular-card" onclick="${timeStatus.isOpen ? `addToCartPopular(${p.id})` : ''}" style="${!timeStatus.isOpen ? 'cursor: default; filter: grayscale(0.2);' : ''}">
                 <div class="popular-card-info">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 8px;">#Destacado</span>
                     <h3>${p.name[currentLang]}</h3>
                     ${p.description ? `<p style="font-size: 12px; margin: 4px 0 8px 0; opacity: 0.9; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description[currentLang]}</p>` : ''}
                     <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
                         <span style="font-weight: 800; font-size: 18px;">${formatPrice(p.price)}</span>
-                        <div style="font-size: 12px; font-weight: 600; background: white; color: var(--primary); padding: 6px 12px; border-radius: 12px;">Pedir</div>
+                        <div style="font-size: 12px; font-weight: 600; background: ${!timeStatus.isOpen ? '#555' : 'white'}; color: ${!timeStatus.isOpen ? 'white' : 'var(--primary)'}; padding: 6px 12px; border-radius: 12px;">${btnText}</div>
                     </div>
                 </div>
-                <img src="${p.image}" alt="${p.name[currentLang]}">
+                <img src="${p.image}" alt="${p.name[currentLang]}" style="${!timeStatus.isOpen ? 'opacity: 0.7;' : ''}">
+                ${!timeStatus.isOpen ? `<div style="position: absolute; top: 12px; right: 12px; background: #555; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; z-index: 10;">${timeStatus.message}</div>` : ''}
             </div>
         </div>`;
     });
@@ -353,6 +441,23 @@ function openOptionsModal(productId, qty) {
     selectedOptionsQty = qty || 1;
 
     document.getElementById('options-modal-title').innerText = product.name[currentLang];
+
+    // Check schedule
+    const rest = restaurants.find(r => r.id === product.restaurantId);
+    const timeStatus = getRestaurantTimeStatus(rest);
+    const confirmBtn = document.getElementById('confirm-options-btn');
+
+    if (confirmBtn) {
+        if (!timeStatus.isOpen) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = timeStatus.message;
+            confirmBtn.style.background = "#555";
+        } else {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = translations[currentLang].addToCart;
+            confirmBtn.style.background = "var(--primary)";
+        }
+    }
 
     // reset qty text
     const qtyEl = document.getElementById('options-modal-qty');
@@ -459,6 +564,10 @@ function confirmProductOptions() {
 }
 
 function addItemToCart(product, qty, option) {
+    // Final safety check
+    const rest = restaurants.find(r => r.id === product.restaurantId);
+    if (!getRestaurantTimeStatus(rest).isOpen) return;
+
     let finalPrice = product.price;
 
     if (option) {
@@ -561,30 +670,37 @@ function renderProducts() {
     const grid = document.getElementById('product-grid');
     if (!grid || !currentRestaurantId) return;
     const filtered = products.filter(p => p.restaurantId === currentRestaurantId);
+    const rest = restaurants.find(r => r.id === currentRestaurantId);
+    const timeStatus = getRestaurantTimeStatus(rest);
+
     grid.innerHTML = filtered.map(p => {
         const inCart = cart.find(item => item.id === p.id);
         const badgeText = currentLang === 'es' ? 'en carrito' : 'in cart';
         const badgeHtml = inCart ? `<div class="in-cart-badge">${inCart.qty} ${badgeText}</div>` : '';
 
+        const btnDisabled = !timeStatus.isOpen ? 'disabled' : '';
+        const btnClass = !timeStatus.isOpen ? 'add-to-cart closed-btn' : 'add-to-cart';
+        const btnText = !timeStatus.isOpen ? timeStatus.message : translations[currentLang].addToCart;
+
         return `
-        <div class="product-card">
-            <div class="product-img-container" onclick="openProductDetails(${p.id}, 1)" style="cursor: pointer;">
-                <img src="${p.image}" alt="${p.name[currentLang]}" class="product-img">
+        <div class="product-card" style="${!timeStatus.isOpen ? 'opacity: 0.8;' : ''}">
+            <div class="product-img-container" onclick="${timeStatus.isOpen ? `openProductDetails(${p.id}, 1)` : ''}" style="cursor: ${timeStatus.isOpen ? 'pointer' : 'default'};">
+                <img src="${p.image}" alt="${p.name[currentLang]}" class="product-img" style="${!timeStatus.isOpen ? 'filter: grayscale(0.5);' : ''}">
                 ${badgeHtml}
             </div>
-            <div class="product-info" onclick="openProductDetails(${p.id}, 1)" style="cursor: pointer;">
+            <div class="product-info" onclick="${timeStatus.isOpen ? `openProductDetails(${p.id}, 1)` : ''}" style="cursor: ${timeStatus.isOpen ? 'pointer' : 'default'};">
                 <h3>${p.name[currentLang]}</h3>
                 ${p.description ? `<p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description[currentLang]}</p>` : ''}
                 <p style="color: var(--primary); font-weight: 800; margin-top: auto;">${formatPrice(p.price)}</p>
             </div>
             <div class="product-controls">
-                <button class="control-btn" onclick="updateQty(this, -1)">-</button>
+                <button class="control-btn" onclick="updateQty(this, -1)" ${btnDisabled}>-</button>
                 <span class="qty">1</span>
-                <button class="control-btn" onclick="updateQty(this, 1)">+</button>
+                <button class="control-btn" onclick="updateQty(this, 1)" ${btnDisabled}>+</button>
             </div>
-            <button class="add-to-cart" onclick="addToCart(this, ${p.id})">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                ${translations[currentLang].addToCart}
+            <button class="${btnClass}" onclick="addToCart(this, ${p.id})" ${btnDisabled}>
+                ${!timeStatus.isOpen ? '' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>'}
+                ${btnText}
             </button>
         </div>
     `}).join('');
@@ -708,6 +824,33 @@ async function submitOrder() {
             confirmButtonText: 'OK'
         });
         return;
+    }
+
+    // Validación de 10 dígitos numéricos
+    if (!/^\d{10}$/.test(phoneInput)) {
+        Swal.fire({
+            icon: 'error',
+            title: currentLang === 'es' ? 'Formato inválido' : 'Invalid format',
+            text: currentLang === 'es' ? 'El número de Whatsapp debe tener exactamente 10 dígitos numéricos.' : 'The WhatsApp number must have exactly 10 numeric digits.',
+            confirmButtonColor: '#FF6B00',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+    // Validar horarios antes de enviar
+    for (const item of cart) {
+        const rest = restaurants.find(r => r.id === item.restaurantId);
+        const timeStatus = getRestaurantTimeStatus(rest);
+        if (!timeStatus.isOpen) {
+            Swal.fire({
+                icon: 'error',
+                title: currentLang === 'es' ? 'Comercio Cerrado' : 'Merchant Closed',
+                text: currentLang === 'es' ? `El comercio ${rest.name} se encuentra cerrado en este momento (${timeStatus.message}). Por favor, retira sus productos del carrito.` : `${rest.name} is currently closed (${timeStatus.message}). Please remove its products from the cart.`,
+                confirmButtonColor: '#FF6B00'
+            });
+            return;
+        }
     }
 
     const sendBtn = document.querySelector('#checkout-form-modal .checkout-btn');
@@ -960,15 +1103,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filtrar y renderizar restaurantes
             const filteredRests = restaurants.filter(r => matchedRestaurants.has(r.id));
 
-            restaurantGrid.innerHTML = filteredRests.length > 0 ? filteredRests.map(r => `
+            const disabledRestsSearch = [1, 6];
+            const disabledCatsSearch = ['pharmacy', 'supermarket', 'licores'];
+            const pLabelSearch = currentLang === 'es' ? 'Próximamente' : 'Coming soon';
+
+            restaurantGrid.innerHTML = filteredRests.length > 0 ? filteredRests.map(r => {
+                const isDisabled = disabledRestsSearch.includes(r.id) || disabledCatsSearch.includes(r.category);
+                if (isDisabled) {
+                    return `
+                    <div class="restaurant-card" style="opacity: 0.6; cursor: not-allowed; position: relative;" onclick="event.preventDefault();">
+                        <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">
+                        <div class="restaurant-info">
+                            <h3>${r.name}</h3>
+                            <p>${translations[currentLang].categories[r.category]}</p>
+                        </div>
+                        <div style="position: absolute; top: 12px; right: 12px; background: #FF6B00; color: white; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10;">${pLabelSearch}</div>
+                    </div>`;
+                }
+                return `
                 <div class="restaurant-card" onclick="showRestaurantProducts(${r.id})">
                     <img src="${r.image}" class="restaurant-img" alt="${r.name.replace(/"/g, '&quot;')}">
                     <div class="restaurant-info">
                         <h3>${r.name}</h3>
                         <p>${translations[currentLang].categories[r.category]}</p>
                     </div>
-                </div>
-            `).join('') : `<p style="text-align:center; padding: 20px; grid-column: 1/-1;">${currentLang === 'es' ? 'No se encontraron resultados' : 'No results found'}</p>`;
+                </div>`;
+            }).join('') : `<p style="text-align:center; padding: 20px; grid-column: 1/-1;">${currentLang === 'es' ? 'No se encontraron resultados' : 'No results found'}</p>`;
         });
     }
 });
@@ -1061,7 +1221,11 @@ async function initApp() {
             });
 
             // Determinar los 5 productos más vendidos usando histórico (con desempate por popularidad inicial)
-            const sortedProds = [...products].sort((a, b) => {
+            // Filtramos los productos de los comercios deshabilitados (1: Santa Maria, 6: Classic Burger)
+            // Y también de las categorías deshabilitadas
+            const disabledCatsList = ['pharmacy', 'supermarket', 'licores'];
+            const availableProds = products.filter(p => ![1, 6].includes(p.restaurantId) && !disabledCatsList.includes(p.category));
+            const sortedProds = availableProds.sort((a, b) => {
                 const countA = prodCounts[a.id] || 0;
                 const countB = prodCounts[b.id] || 0;
                 if (countA === countB) {
